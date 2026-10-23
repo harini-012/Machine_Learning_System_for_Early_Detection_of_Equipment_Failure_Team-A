@@ -1,103 +1,51 @@
-
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 
-# Project paths
+# Locate project folders
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = PROJECT_DIR / "data" / "processed" / "equipment_cleaned.csv"
+DATA_PATH = PROJECT_DIR / "data" / "raw" / "ai4i2020.csv"
 REPORTS_DIR = PROJECT_DIR / "reports"
 
+# Create reports folder if needed
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Load cleaned dataset
+# Load dataset
 df = pd.read_csv(DATA_PATH)
 
-sns.set_theme(style="whitegrid")
+# Count machine failures and non-failures
+failure_counts = df["Machine failure"].value_counts().reindex(
+    [0, 1], fill_value=0
+)
 
-# Sensor columns
-sensor_columns = [
-    "Air temperature [K]",
-    "Process temperature [K]",
-    "Rotational speed [rpm]",
-    "Torque [Nm]",
-    "Tool wear [min]"
-]
+# Calculate percentages
+total = len(df)
+failure_percentages = failure_counts / total * 100
 
-# 1. Machine failure distribution
-failure_counts = df["Machine failure"].value_counts().sort_index()
+print("Failure Distribution Analysis")
+print("-----------------------------")
+print(f"Total records: {total}")
+print(f"Non-failures (0): {failure_counts[0]}")
+print(f"Failures (1): {failure_counts[1]}")
+print(f"Non-failure percentage: {failure_percentages[0]:.2f}%")
+print(f"Failure percentage: {failure_percentages[1]:.2f}%")
 
-print("Machine failure counts:")
-print(failure_counts)
-
-print("\nFailure percentage:")
-print((df["Machine failure"].value_counts(normalize=True) * 100).round(2))
-
+# Create bar chart
 plt.figure(figsize=(7, 5))
-sns.countplot(data=df, x="Machine failure")
+bars = plt.bar(
+    ["No Failure (0)", "Failure (1)"],
+    failure_counts.values
+)
+
 plt.title("Machine Failure Distribution")
-plt.xlabel("Machine Failure (0 = No, 1 = Yes)")
+plt.xlabel("Machine Failure")
 plt.ylabel("Number of Records")
+plt.bar_label(bars)
 plt.tight_layout()
-plt.savefig(REPORTS_DIR / "failure_distribution.png", dpi=300)
-plt.close()
 
-# 2. Sensor measurement distributions
-df[sensor_columns].hist(
-    figsize=(12, 8),
-    bins=30,
-    edgecolor="black"
-)
+# Save chart
+chart_path = REPORTS_DIR / "failure_distribution.png"
+plt.savefig(chart_path, dpi=300)
+plt.show()
 
-plt.suptitle("Distribution of Equipment Sensor Measurements")
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / "sensor_distributions.png", dpi=300)
-plt.close()
-
-# 3. Compare sensor readings by failure status
-mean_comparison = df.groupby("Machine failure")[sensor_columns].mean()
-
-print("\nMean sensor values by failure status:")
-print(mean_comparison.round(2))
-
-for column in sensor_columns:
-    plt.figure(figsize=(7, 5))
-    sns.boxplot(data=df, x="Machine failure", y=column)
-    plt.title(f"{column} by Machine Failure")
-    plt.xlabel("Machine Failure (0 = No, 1 = Yes)")
-    plt.tight_layout()
-
-    filename = column.lower().replace(" ", "_")
-    filename = filename.replace("[", "").replace("]", "")
-    filename = filename.replace("/", "_")
-
-    plt.savefig(
-        REPORTS_DIR / f"{filename}_by_failure.png",
-        dpi=300
-    )
-    plt.close()
-
-# 4. Correlation heatmap
-numeric_df = df.select_dtypes(include="number")
-correlation = numeric_df.corr()
-
-plt.figure(figsize=(13, 9))
-sns.heatmap(
-    correlation,
-    cmap="coolwarm",
-    center=0,
-    annot=False
-)
-plt.title("Correlation Heatmap of Numerical Variables")
-plt.tight_layout()
-plt.savefig(REPORTS_DIR / "correlation_heatmap.png", dpi=300)
-plt.close()
-
-# 5. Save statistical summary
-df.describe(include="all").to_csv(
-    REPORTS_DIR / "statistical_summary.csv"
-)
-
-print("\nExploratory analysis completed.")
-print("Charts and summary saved in:", REPORTS_DIR)
+print(f"\nChart saved to: {chart_path}")
