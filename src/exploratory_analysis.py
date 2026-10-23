@@ -5,7 +5,7 @@ import seaborn as sn
 
 # Locate project folders
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = PROJECT_DIR / "data" / "raw" / "ai4i2020.csv"
+DATA_PATH = PROJECT_DIR / "data" / "processed" / "equipment_cleaned.csv"
 REPORTS_DIR = PROJECT_DIR / "reports"
 
 # Create reports folder if needed
