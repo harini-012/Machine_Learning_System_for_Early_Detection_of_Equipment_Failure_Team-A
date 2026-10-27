@@ -1,0 +1,10 @@
+feature
+Air temperature [K]
+Process temperature [K]
+Rotational speed [rpm]
+Torque [Nm]
+Tool wear [min]
+Temperature Difference [K]
+Type_H
+Type_L
+Type_M
