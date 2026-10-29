@@ -1,0 +1,14 @@
+{
+    "model": "XGBoost",
+    "accuracy": 0.99,
+    "precision": 0.9444444444444444,
+    "recall": 0.75,
+    "f1_score": 0.8360655737704918,
+    "roc_auc": 0.9808412495432955,
+    "best_parameters": {
+        "n_estimators": 200,
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "scale_pos_weight": 1.0
+    }
+}
