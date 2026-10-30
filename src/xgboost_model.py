@@ -54,7 +54,15 @@ def load_datasets():
 
     X_train = pd.read_csv(paths["X_train"])
     X_test = pd.read_csv(paths["X_test"])
+    X_train.columns = X_train.columns.str.replace(
+    r"[\[\]<]", "", regex=True
+)
 
+    X_test.columns = X_test.columns.str.replace(
+    r"[\[\]<]", "", regex=True
+)
+
+    print("Updated feature names:", X_train.columns.tolist())
     y_train = pd.read_csv(paths["y_train"]).iloc[:, 0]
     y_test = pd.read_csv(paths["y_test"]).iloc[:, 0]
 

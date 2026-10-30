@@ -19,6 +19,8 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
 )
 
+from train_baseline_models import X_test
+
 warnings.filterwarnings("ignore")
 
 # --------------------------------------------------
@@ -164,8 +166,12 @@ def evaluate_all_models(models, X_train, X_test, y_train, y_test):
         val_auc = roc_auc_score(y_val, val_proba)
 
         # Test evaluation using the full-training-set model
-        test_pred = trained_model.predict(X_test)
-        test_proba = trained_model.predict_proba(X_test)[:, 1]
+        if name == "XGBoost":
+            test_pred = trained_model.predict(X_test.to_numpy())
+            test_proba = trained_model.predict_proba(X_test.to_numpy())[:, 1]
+        else:
+            test_pred = trained_model.predict(X_test)
+            test_proba = trained_model.predict_proba(X_test)[:, 1]
 
         test_acc = accuracy_score(y_test, test_pred)
         test_prec = precision_score(y_test, test_pred, zero_division=0)

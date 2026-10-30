@@ -236,8 +236,9 @@ def main():
     xgb_member_path = MODELS_DIR / "xgboost.joblib"
     if best_candidate["algorithm"] == "XGBoost" and xgb_member_path.exists():
         best_model = joblib.load(xgb_member_path)
-        test_pred = best_model.predict(X_test)
-        test_proba = best_model.predict_proba(X_test)[:, 1]
+
+        test_pred = best_model.predict(X_test.to_numpy())
+        test_proba = best_model.predict_proba(X_test.to_numpy())[:, 1]
     elif best_candidate["algorithm"] == "XGBoost":
         best_model.fit(X_train.to_numpy(), y_train)
         test_pred = best_model.predict(X_test.to_numpy())
