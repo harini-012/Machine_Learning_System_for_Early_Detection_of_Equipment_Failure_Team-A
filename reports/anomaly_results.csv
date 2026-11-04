@@ -1999,3 +1999,4 @@ UDI,Product ID,Type,Air temperature [K],Process temperature [K],Rotational speed
 1998,L49177,L,298.3,308.1,1672,41.3,0,0,0,0,0,0,0,OBS-001998,0.0012,False,False,False,False,False,0,None,Healthy,Healthy equipment condition. No significant abnormal sensor readings detected.
 1999,H31412,H,298.3,308.0,1637,30.8,2,0,0,0,0,0,0,OBS-001999,0.0089,False,False,False,False,False,0,None,Healthy,Healthy equipment condition. No significant abnormal sensor readings detected.
 2000,L49179,L,298.4,308.0,1540,37.8,7,0,0,0,0,0,0,OBS-002000,0.0011,False,False,False,False,False,0,None,Healthy,Healthy equipment condition. No significant abnormal sensor readings detected.
+
