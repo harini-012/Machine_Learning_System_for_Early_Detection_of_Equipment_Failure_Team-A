@@ -1,4 +1,5 @@
 UDI,Product ID,Type,Air temperature [K],Process temperature [K],Rotational speed [rpm],Torque [Nm],Tool wear [min],Machine failure,TWF,HDF,PWF,OSF,RNF,Equipment ID,Failure Probability,Air temperature [K] Anomaly,Process temperature [K] Anomaly,Rotational speed [rpm] Anomaly,Torque [Nm] Anomaly,Tool wear [min] Anomaly,Anomaly Count,Abnormal Sensors,Risk Level,Risk Summary
+<<<<<<< HEAD
 1,M14860,M,298.1,308.6,1551,42.8,0,0,0,0,0,0,0,OBS-000001,0.1243,False,False,False,False,False,0,None,Healthy,Healthy equipment condition. No significant abnormal sensor readings detected.
 2,L47181,L,298.2,308.7,1408,46.3,3,0,0,0,0,0,0,OBS-000002,0.0006,False,False,False,False,False,0,None,Healthy,Healthy equipment condition. No significant abnormal sensor readings detected.
 3,L47182,L,298.1,308.5,1498,49.4,5,0,0,0,0,0,0,OBS-000003,0.0619,False,False,False,False,False,0,None,Healthy,Healthy equipment condition. No significant abnormal sensor readings detected.
