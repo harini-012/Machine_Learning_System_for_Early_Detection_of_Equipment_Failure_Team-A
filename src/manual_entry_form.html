@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual Sensor Entry</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #151f32;
+      --border: #26354d;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .sim-field label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+    .sim-field input, .sim-field select { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #0f172a; color: var(--text); }
+    button.action-btn { background: var(--accent); border: none; color: #fff; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    button.action-btn:hover { opacity: 0.9; }
+    #result { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Manual Sensor Entry</h2>
+    <p style="color: var(--muted);">Enter sensor readings for a piece of equipment and submit them to the backend.</p>
+    <div class="sim-grid">
+      <div class="sim-field"><label>Equipment ID</label><input id="entryEqId" value="EQ-001" /></div>
+      <div class="sim-field"><label>Equipment Type</label>
+        <select id="entryType"><option value="L">L (Low)</option><option value="M">M (Medium)</option><option value="H">H (High)</option></select>
+      </div>
+      <div class="sim-field"><label>Air Temp [K]</label><input type="number" step="0.1" id="entryAir" value="300.0" /></div>
+      <div class="sim-field"><label>Process Temp [K]</label><input type="number" step="0.1" id="entryProc" value="310.0" /></div>
+      <div class="sim-field"><label>Rotational Speed [rpm]</label><input type="number" step="1" id="entrySpeed" value="1500" /></div>
+      <div class="sim-field"><label>Torque [Nm]</label><input type="number" step="0.5" id="entryTorque" value="40" /></div>
+      <div class="sim-field"><label>Tool Wear [min]</label><input type="number" step="1" id="entryWear" value="0" /></div>
+    </div>
+    <button class="action-btn" onclick="submitReading()">Submit Sensor Reading</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function submitReading() {
+      const payload = {
+        equipment_id: document.getElementById('entryEqId').value.trim(),
+        equipment_type: document.getElementById('entryType').value,
+        air_temperature: parseFloat(document.getElementById('entryAir').value),
+        process_temperature: parseFloat(document.getElementById('entryProc').value),
+        rotational_speed: parseFloat(document.getElementById('entrySpeed').value),
+        torque: parseFloat(document.getElementById('entryTorque').value),
+        tool_wear: parseFloat(document.getElementById('entryWear').value),
+      };
+      fetch('/api/insert_sensor', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(data => {
+        const el = document.getElementById('result');
+        if (data.status === 'success') {
+          el.innerHTML = '<span style="color:#10b981;">✅ Sensor reading saved.</span>';
+        } else {
+          el.innerHTML = `<span style="color:#ef4444;">❌ Error: ${data.error || 'unknown'}</span>`;
+        }
+      })
+      .catch(err => {
+        document.getElementById('result').innerHTML = `<span style="color:#ef4444;">❌ Network error</span>`;
+      });
+    }
+  </script>
+</body>
+</html>
