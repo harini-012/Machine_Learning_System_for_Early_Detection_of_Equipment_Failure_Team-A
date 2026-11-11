@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Predictive Maintenance Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+    <div class="dashboard-header">
+        <h1>Predictive Maintenance Dashboard</h1>
+        <p>Equipment Failure Prediction System</p>
+    </div>
+
+    <div class="card">
+        <h2>Equipment Prediction</h2>
+
+        <form action="/dashboard" method="POST">
+
+            <label>Equipment ID</label>
+            <input type="text"
+                   name="equipment_id"
+                   value="{{ values.get('equipment_id', '') }}"
+                   placeholder="Example: E001"
+                   required>
+
+            <label>Equipment Type</label>
+            <select name="equipment_type" required>
+                <option value="">Select Type</option>
+                <option value="L" {% if values.get('equipment_type') == 'L' %}selected{% endif %}>L</option>
+                <option value="M" {% if values.get('equipment_type') == 'M' %}selected{% endif %}>M</option>
+                <option value="H" {% if values.get('equipment_type') == 'H' %}selected{% endif %}>H</option>
+            </select>
+
+            <label>Air Temperature [K]</label>
+            <input type="number"
+                   step="0.01"
+                   name="air_temperature"
+                   value="{{ values.get('air_temperature', '') }}"
+                   required>
+
+            <label>Process Temperature [K]</label>
+            <input type="number"
+                   step="0.01"
+                   name="process_temperature"
+                   value="{{ values.get('process_temperature', '') }}"
+                   required>
+
+            <label>Rotational Speed [rpm]</label>
+            <input type="number"
+                   name="rotational_speed"
+                   value="{{ values.get('rotational_speed', '') }}"
+                   required>
+
+            <label>Torque [Nm]</label>
+            <input type="number"
+                   step="0.01"
+                   name="torque"
+                   value="{{ values.get('torque', '') }}"
+                   required>
+
+            <label>Tool Wear [min]</label>
+            <input type="number"
+                   name="tool_wear"
+                   value="{{ values.get('tool_wear', '') }}"
+                   required>
+
+            <button type="submit">Predict Failure</button>
+
+        </form>
+    </div>
+
+
+    {% if error %}
+    <div class="card error">
+        <h2>Error</h2>
+        <p>{{ error }}</p>
+    </div>
+    {% endif %}
+
+
+    {% if result %}
+    <div class="card result">
+        <h2>Prediction Result</h2>
+
+        <p><strong>Equipment ID:</strong>
+            {{ values.get('equipment_id', '') }}
+        </p>
+
+        <p><strong>Prediction:</strong>
+            {{ result }}
+        </p>
+    </div>
+    {% endif %}
+
+
+    <div class="card">
+        <h2>Risk Classification</h2>
+        <p>Equipment risk will be displayed here.</p>
+    </div>
+
+
+    <div class="card">
+        <h2>Anomaly Detection</h2>
+        <p>Abnormal sensor readings will be displayed here.</p>
+    </div>
+
+
+    <div class="card">
+        <h2>Alerts</h2>
+        <p>Equipment alerts will be displayed here.</p>
+    </div>
+
+
+    <div class="card">
+        <h2>Maintenance Recommendations</h2>
+        <p>Recommended maintenance actions will be displayed here.</p>
+    </div>
+
+
+    <div class="card">
+        <h2>Historical Trends</h2>
+        <p>Equipment trends will be displayed here.</p>
+    </div>
+
+</div>
+
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+</html>
