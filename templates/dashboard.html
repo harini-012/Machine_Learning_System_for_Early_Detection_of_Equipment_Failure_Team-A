@@ -1,139 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
+{% block title %}Prediction | Predictive Maintenance{% endblock %}
 
-    <title>Predictive Maintenance Dashboard</title>
+{% block content %}
+<section class="section">
+    <header class="page-heading">
+        <h1>Equipment prediction</h1>
+        <p class="muted">Enter temperatures in Kelvin. Add 273.15 to convert from Celsius.</p>
+    </header>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/dashboard.css') }}">
-</head>
+    <div class="prediction-grid">
+        <form class="card" method="post" action="{{ url_for('dashboard') }}">
+            <h2>Sensor readings</h2>
 
-<body>
+            {% if error %}
+                <p class="form-error" role="alert">{{ error }}</p>
+            {% endif %}
 
-<div class="dashboard-container">
+            <div class="fields">
+                <div class="field">
+                    <label for="equipment_id">Equipment ID</label>
+                    <input id="equipment_id" name="equipment_id" type="text"
+                           maxlength="100" placeholder="EQ-001"
+                           value="{{ values.get('equipment_id', '') }}" required>
+                </div>
 
-    <div class="dashboard-header">
-        <h1>Predictive Maintenance Dashboard</h1>
-        <p>Equipment Failure Prediction System</p>
-    </div>
+                <div class="field">
+                    <label for="equipment_type">Equipment type</label>
+                    <select id="equipment_type" name="equipment_type" required>
+                        <option value="">Select type</option>
+                        {% for kind in ["L", "M", "H"] %}
+                            <option value="{{ kind }}"
+                                {% if values.get('equipment_type') == kind %}selected{% endif %}>
+                                {{ kind }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-    <div class="card">
-        <h2>Equipment Prediction</h2>
+                {% for name, label, minimum, example in dashboard_fields %}
+                    <div class="field">
+                        <label for="{{ name }}">{{ label }}</label>
+                        <input id="{{ name }}" name="{{ name }}" type="number"
+                               min="{{ minimum }}" step="any" placeholder="{{ example }}"
+                               value="{{ values.get(name, '') }}" required>
+                    </div>
+                {% endfor %}
+            </div>
 
-        <form action="/dashboard" method="POST">
-
-            <label>Equipment ID</label>
-            <input type="text"
-                   name="equipment_id"
-                   value="{{ values.get('equipment_id', '') }}"
-                   placeholder="Example: E001"
-                   required>
-
-            <label>Equipment Type</label>
-            <select name="equipment_type" required>
-                <option value="">Select Type</option>
-                <option value="L" {% if values.get('equipment_type') == 'L' %}selected{% endif %}>L</option>
-                <option value="M" {% if values.get('equipment_type') == 'M' %}selected{% endif %}>M</option>
-                <option value="H" {% if values.get('equipment_type') == 'H' %}selected{% endif %}>H</option>
-            </select>
-
-            <label>Air Temperature [K]</label>
-            <input type="number"
-                   step="0.01"
-                   name="air_temperature"
-                   value="{{ values.get('air_temperature', '') }}"
-                   required>
-
-            <label>Process Temperature [K]</label>
-            <input type="number"
-                   step="0.01"
-                   name="process_temperature"
-                   value="{{ values.get('process_temperature', '') }}"
-                   required>
-
-            <label>Rotational Speed [rpm]</label>
-            <input type="number"
-                   name="rotational_speed"
-                   value="{{ values.get('rotational_speed', '') }}"
-                   required>
-
-            <label>Torque [Nm]</label>
-            <input type="number"
-                   step="0.01"
-                   name="torque"
-                   value="{{ values.get('torque', '') }}"
-                   required>
-
-            <label>Tool Wear [min]</label>
-            <input type="number"
-                   name="tool_wear"
-                   value="{{ values.get('tool_wear', '') }}"
-                   required>
-
-            <button type="submit">Predict Failure</button>
-
+            <button class="button submit" type="submit">Predict failure</button>
         </form>
+
+        <section class="card result-panel" aria-labelledby="result-title">
+            <h2 id="result-title">Prediction result</h2>
+
+            {% if result %}
+                {% set probability = result.failure_probability * 100 %}
+                {% set failure = result.predicted_failure == 1 %}
+
+                <span class="status {{ 'status-danger' if failure else 'status-success' }}">
+                    {{ result.prediction_label }}
+                </span>
+
+                <p class="probability">{{ "%.2f"|format(probability) }}%</p>
+                <label class="muted" for="failure-probability">Estimated failure probability</label>
+
+                <progress id="failure-probability" value="{{ probability }}" max="100"
+                          class="{{ 'bar-danger' if failure else 'bar-success' }}">
+                    {{ "%.2f"|format(probability) }}%
+                </progress>
+
+                <dl class="result-details">
+                    <div>
+                        <dt>Equipment ID</dt>
+                        <dd>{{ result.equipment_id }}</dd>
+                    </div>
+                    <div>
+                        <dt>Decision threshold</dt>
+                        <dd>50%</dd>
+                    </div>
+                </dl>
+
+                <p class="muted">Based on the last submitted readings.</p>
+            {% else %}
+                <p class="empty-state">Submit sensor readings to see the model’s prediction.</p>
+            {% endif %}
+        </section>
     </div>
-
-
-    {% if error %}
-    <div class="card error">
-        <h2>Error</h2>
-        <p>{{ error }}</p>
-    </div>
-    {% endif %}
-
-
-    {% if result %}
-    <div class="card result">
-        <h2>Prediction Result</h2>
-
-        <p><strong>Equipment ID:</strong>
-            {{ values.get('equipment_id', '') }}
-        </p>
-
-        <p><strong>Prediction:</strong>
-            {{ result }}
-        </p>
-    </div>
-    {% endif %}
-
-
-    <div class="card">
-        <h2>Risk Classification</h2>
-        <p>Equipment risk will be displayed here.</p>
-    </div>
-
-
-    <div class="card">
-        <h2>Anomaly Detection</h2>
-        <p>Abnormal sensor readings will be displayed here.</p>
-    </div>
-
-
-    <div class="card">
-        <h2>Alerts</h2>
-        <p>Equipment alerts will be displayed here.</p>
-    </div>
-
-
-    <div class="card">
-        <h2>Maintenance Recommendations</h2>
-        <p>Recommended maintenance actions will be displayed here.</p>
-    </div>
-
-
-    <div class="card">
-        <h2>Historical Trends</h2>
-        <p>Equipment trends will be displayed here.</p>
-    </div>
-
-</div>
-
-
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-
-</body>
-</html>
+</section>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Predictive Maintenance{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="{{ url_for('home') }}">
+                <span class="brand-mark" aria-hidden="true">PM</span>
+                Predictive Maintenance
+            </a>
+
+            <nav aria-label="Main navigation">
+                <a href="{{ url_for('home') }}"
+                   {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>Home</a>
+                <a href="{{ url_for('dashboard') }}"
+                   {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>Prediction</a>
+
+                {% for key, item in monitoring_pages.items() %}
+                    <a href="{{ url_for('monitoring_page', page=key) }}"
+                       {% if page_key == key %}aria-current="page"{% endif %}>
+                        {{ item.nav }}
+                    </a>
+                {% endfor %}
+            </nav>
+        </div>
+    </header>
+
+    <main id="main" class="shell">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="shell footer">Equipment Failure Prediction System</footer>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Home | Predictive Maintenance{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <h1>Monitor equipment health</h1>
+        <p>
+            Enter machine sensor readings to estimate failure probability
+            using your trained predictive maintenance model.
+        </p>
+        <a class="button" href="{{ url_for('dashboard') }}">Run a prediction →</a>
+    </div>
+
+    <aside class="hero-panel" aria-labelledby="workflow-title">
+        <h2 id="workflow-title">Prediction workflow</h2>
+        <ol>
+            <li>Enter an equipment ID and select its type.</li>
+            <li>Add the five sensor readings.</li>
+            <li>Review the prediction and failure probability.</li>
+        </ol>
+    </aside>
+</section>
+
+<section class="section" aria-labelledby="monitoring-title">
+    <h2 id="monitoring-title">Monitoring</h2>
+    <div class="monitoring-grid">
+        {% for key, item in monitoring_pages.items() %}
+            <a class="card module-card"
+               href="{{ url_for('monitoring_page', page=key) }}">
+                <h3>{{ item.title }} <span aria-hidden="true">↗</span></h3>
+                <p class="muted">{{ item.description }}</p>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
