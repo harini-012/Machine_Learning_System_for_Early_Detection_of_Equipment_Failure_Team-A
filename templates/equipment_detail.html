@@ -1,0 +1,183 @@
+
+{% extends "base.html" %}
+{% block title %}Equipment History | Predictive Maintenance{% endblock %}
+
+{% block content %}
+<section class="section">
+    <header class="page-heading">
+        <h1>Equipment Details</h1>
+        <p class="muted">Historical readings and failure predictions.</p>
+    </header>
+
+    <section class="card">
+        <h2>{{ equipment.equipment_id }}</h2>
+        <p><strong>Product ID:</strong> {{ equipment.product_id or "N/A" }}</p>
+        <p><strong>Equipment Type:</strong> {{ equipment.equipment_type }}</p>
+        <p><strong>Description:</strong> {{ equipment.description or "N/A" }}</p>
+        <p><strong>Total Sensor Readings:</strong> {{ sensor_readings|length }}</p>
+        <p><strong>Total Predictions:</strong> {{ predictions|length }}</p>
+    </section>
+
+    <section class="card">
+        <h2>Sensor Temperature Trends</h2>
+        <canvas id="temperatureChart"></canvas>
+    </section>
+
+    <section class="card">
+        <h2>Rotational Speed Trend</h2>
+        <canvas id="speedChart"></canvas>
+    </section>
+
+    <section class="card">
+        <h2>Failure Probability History</h2>
+        <canvas id="predictionChart"></canvas>
+    </section>
+
+    <section class="card">
+        <h2>Sensor Reading History</h2>
+        {% if sensor_readings %}
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Air Temp</th>
+                        <th>Process Temp</th>
+                        <th>Speed</th>
+                        <th>Torque</th>
+                        <th>Tool Wear</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reading in sensor_readings|reverse %}
+                    <tr>
+                        <td>{{ reading.ts }}</td>
+                        <td>{{ reading.air_temperature }}</td>
+                        <td>{{ reading.process_temperature }}</td>
+                        <td>{{ reading.rotational_speed }}</td>
+                        <td>{{ reading.torque }}</td>
+                        <td>{{ reading.tool_wear }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-state">No sensor readings available.</p>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>Prediction History</h2>
+        {% if predictions %}
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Prediction</th>
+                        <th>Failure Probability</th>
+                        <th>Health Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prediction in predictions|reverse %}
+                    <tr>
+                        <td>{{ prediction.ts }}</td>
+                        <td>{{ prediction.prediction_label }}</td>
+                        <td>{{ "%.2f"|format(prediction.failure_probability * 100) }}%</td>
+                        <td>{{ prediction.health_score }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-state">No predictions available.</p>
+        {% endif %}
+    </section>
+
+    <p><a href="{{ url_for('equipment_list') }}">Back to Equipment List</a></p>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const sensorLabels = {{ sensor_readings | map(attribute='ts') | list | tojson }};
+const airTemperatures = {{ sensor_readings | map(attribute='air_temperature') | list | tojson }};
+const processTemperatures = {{ sensor_readings | map(attribute='process_temperature') | list | tojson }};
+const rotationalSpeeds = {{ sensor_readings | map(attribute='rotational_speed') | list | tojson }};
+
+const predictionLabels = {{ predictions | map(attribute='ts') | list | tojson }};
+const failureProbabilities = {{ predictions | map(attribute='failure_probability') | list | tojson }}
+    .map(value => value * 100);
+
+if (typeof Chart !== "undefined") {
+    new Chart(document.getElementById("temperatureChart"), {
+        type: "line",
+        data: {
+            labels: sensorLabels,
+            datasets: [
+                {
+                    label: "Air Temperature (K)",
+                    data: airTemperatures,
+                    tension: 0.3
+                },
+                {
+                    label: "Process Temperature (K)",
+                    data: processTemperatures,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: "Observation" } },
+                y: { title: { display: true, text: "Temperature (K)" } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("speedChart"), {
+        type: "line",
+        data: {
+            labels: sensorLabels,
+            datasets: [{
+                label: "Rotational Speed (rpm)",
+                data: rotationalSpeeds,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    new Chart(document.getElementById("predictionChart"), {
+        type: "line",
+        data: {
+            labels: predictionLabels,
+            datasets: [{
+                label: "Failure Probability (%)",
+                data: failureProbabilities,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: "Failure Probability (%)"
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
