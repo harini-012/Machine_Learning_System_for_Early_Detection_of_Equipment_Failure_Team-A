@@ -530,3 +530,506 @@ dd {
         transform: none;
     }
 }
+/* Equipment list */
+.equipment-page .equipment-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.equipment-page .equipment-toolbar h2 {
+    margin: 0 0 4px;
+}
+
+.equipment-page .equipment-toolbar p {
+    margin: 0;
+    font-size: .875rem;
+}
+
+.equipment-page .table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border, #dbe4ec);
+    border-radius: 14px;
+}
+
+.equipment-page table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.equipment-page th,
+.equipment-page td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border, #dbe4ec);
+    vertical-align: middle;
+}
+
+.equipment-page thead th {
+    background: #edf4f6;
+    color: #40576a;
+    font-size: .78rem;
+    font-weight: 750;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.equipment-page tbody th {
+    color: #172738;
+    font-size: .95rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.equipment-page tbody td {
+    font-size: .9rem;
+}
+
+.equipment-page tbody tr:hover {
+    background: #f5faf9;
+}
+
+.equipment-page tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+.equipment-page .equipment-description {
+    min-width: 145px;
+    max-width: 280px;
+    color: var(--muted, #516475);
+    overflow-wrap: anywhere;
+}
+
+.equipment-page .equipment-type {
+    display: inline-grid;
+    min-width: 32px;
+    min-height: 30px;
+    place-items: center;
+    padding: 2px 8px;
+    border-radius: 8px;
+    background: #e4f6f0;
+    color: #076454;
+    font-size: .8rem;
+    font-weight: 800;
+}
+
+.equipment-page .equipment-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.equipment-page .equipment-actions form {
+    margin: 0;
+}
+
+.equipment-page .equipment-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 7px 11px;
+    border: 1px solid #dbe4ec;
+    border-radius: 8px;
+    background: #fff;
+    color: #33485b;
+    font: inherit;
+    font-size: .82rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.equipment-page .equipment-action:hover {
+    background: #edf2f6;
+}
+
+.equipment-page .equipment-action-history {
+    border-color: #bae3d8;
+    background: #eaf8f4;
+    color: #075f52;
+}
+
+.equipment-page .equipment-action-history:hover {
+    background: #d7f1e9;
+}
+
+.equipment-page .equipment-action-delete {
+    border-color: #efccd4;
+    color: #a1253c;
+}
+
+.equipment-page .equipment-action-delete:hover {
+    background: #fff0f3;
+}
+
+@media (max-width: 540px) {
+    .equipment-page .equipment-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .equipment-page th,
+    .equipment-page td {
+        padding: 12px;
+    }
+}
+/* Equipment Details and Prediction page headers */
+
+.equipment-detail-page > .page-heading,
+.prediction-page > .page-heading {
+    margin-bottom: 24px;
+    padding: clamp(22px, 4vw, 40px);
+    border: 1px solid #23465a;
+    border-radius: 22px;
+    background:
+        radial-gradient(ellipse at top right, #14786b80, transparent 62%),
+        linear-gradient(125deg, #0c1a2b, #15354a);
+    color: #fff;
+}
+
+.equipment-detail-page > .page-heading .muted,
+.prediction-page > .page-heading .muted {
+    margin: 8px 0 0;
+    color: #d1e2ed;
+}
+
+/* Equipment Details */
+
+.equipment-detail-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.equipment-detail-page > .page-heading,
+.equipment-detail-page > .card,
+.equipment-detail-page > p {
+    grid-column: 1 / -1;
+}
+
+.equipment-detail-page > .page-heading {
+    margin-bottom: 0;
+}
+
+/* Place the temperature and speed charts side by side. */
+.equipment-detail-page > .card:has(#temperatureChart),
+.equipment-detail-page > .card:has(#speedChart) {
+    grid-column: auto;
+}
+
+.equipment-detail-page > .card {
+    min-width: 0;
+    margin: 0;
+}
+
+.equipment-detail-page > .card:first-of-type {
+    border-left: 4px solid #087f71;
+    background: linear-gradient(115deg, #fff, #f0faf7);
+}
+
+.equipment-detail-page > .card:first-of-type h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.equipment-detail-page > .card:first-of-type p {
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+}
+
+.equipment-detail-page > .card:first-of-type p:last-child {
+    margin-bottom: 0;
+}
+
+.equipment-detail-page canvas {
+    max-width: 100%;
+}
+
+.equipment-detail-page table {
+    width: 100%;
+    min-width: 580px;
+    border-collapse: collapse;
+    text-align: left;
+    font-variant-numeric: tabular-nums;
+}
+
+.equipment-detail-page th,
+.equipment-detail-page td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #dbe4ec;
+    white-space: nowrap;
+}
+
+.equipment-detail-page thead th {
+    background: #edf4f6;
+    color: #40576a;
+    font-size: .8rem;
+    font-weight: 750;
+}
+
+.equipment-detail-page tbody td {
+    font-size: .9rem;
+}
+
+.equipment-detail-page tbody tr:hover {
+    background: #f0faf7;
+}
+
+.equipment-detail-page tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.equipment-detail-page > p > a {
+    color: #05665b;
+    font-weight: 750;
+    text-underline-offset: 4px;
+}
+
+/* Prediction form and result */
+
+.prediction-page .prediction-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+}
+
+.prediction-page form.card {
+    border-top: 4px solid #087f71;
+}
+
+.prediction-page form.card h2,
+.prediction-page .result-panel h2 {
+    margin-bottom: 22px;
+    font-size: 1.35rem;
+}
+
+.prediction-page form.card input,
+.prediction-page form.card select {
+    min-height: 48px;
+    background: #f5f8fa;
+}
+
+.prediction-page form.card input:focus,
+.prediction-page form.card select:focus {
+    border-color: #087f71;
+    background: #fff;
+}
+
+.prediction-page .submit {
+    width: 100%;
+    margin-top: 24px;
+}
+
+.prediction-page .result-panel {
+    border: 1px solid #294658;
+    border-top: 4px solid #72efd1;
+    background: linear-gradient(145deg, #0c1a2b, #163448);
+    color: #f4faff;
+}
+
+.prediction-page .result-panel .muted,
+.prediction-page .result-panel dt {
+    color: #c3d5e3;
+}
+
+.prediction-page .result-panel .empty-state {
+    border-color: #5a7689;
+    background: #203b4c;
+    color: #e0edf5;
+}
+
+.prediction-page .result-panel .probability {
+    margin: 14px 0 8px;
+    font-size: clamp(2.75rem, 6vw, 4.75rem);
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -.055em;
+}
+
+.prediction-page .result-panel .result-details > div {
+    border-top-color: #426071;
+}
+
+.prediction-page .result-panel progress {
+    height: 14px;
+    margin-block: 14px 22px;
+}
+
+.prediction-page .bar-danger {
+    accent-color: #ff8a9a;
+}
+
+.prediction-page .bar-success {
+    accent-color: #72efd1;
+}
+
+@media (max-width: 820px) {
+    .equipment-detail-page,
+    .prediction-page .prediction-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 540px) {
+    .equipment-detail-page th,
+    .equipment-detail-page td {
+        padding: 10px 12px;
+    }
+
+    .prediction-page .fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+/* Prediction workspace */
+
+.prediction-page > .page-heading {
+    padding: 24px 0 20px;
+    border: 0;
+    border-bottom: 1px solid #dbe4ec;
+    border-radius: 0;
+    background: transparent;
+    color: #172738;
+}
+
+.prediction-page > .page-heading h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    letter-spacing: -.055em;
+}
+
+.prediction-page > .page-heading .muted {
+    margin-top: 8px;
+    color: #516475;
+}
+
+.prediction-page .prediction-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
+    align-items: start;
+    gap: 24px;
+}
+
+.prediction-page .prediction-form,
+.prediction-page .result-panel {
+    padding: clamp(20px, 3vw, 32px);
+    border-radius: 20px;
+}
+
+.prediction-page .prediction-form {
+    border: 1px solid #dbe4ec;
+    background: #fff;
+}
+
+.prediction-page .equipment-picker {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid #cce5df;
+    border-radius: 14px;
+    background: #eef8f5;
+}
+
+.prediction-page .fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.prediction-page .field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #26394d;
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.prediction-page .prediction-form input,
+.prediction-page .prediction-form select {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid #bdccd8;
+    border-radius: 10px;
+    background: #f7f9fb;
+}
+
+.prediction-page .prediction-form select {
+    background: #fff;
+}
+
+.prediction-page .prediction-form :is(input, select):focus {
+    border-color: #087f71;
+    outline: 3px solid #b8e7dc;
+    outline-offset: 2px;
+    background: #fff;
+}
+
+.prediction-page .prediction-form .submit {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    margin-top: 24px;
+    padding-inline: 18px;
+    background: #08776a;
+}
+
+.prediction-page .prediction-form .submit:hover {
+    background: #05665b;
+}
+
+.prediction-page .result-panel {
+    border: 1px solid #294658;
+    border-top: 4px solid #72efd1;
+    background:
+        radial-gradient(ellipse at top right, #155a57, transparent 72%),
+        #0c1a2b;
+    color: #f4faff;
+}
+
+.prediction-page .result-panel .probability {
+    margin: 16px 0 6px;
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: -.06em;
+}
+
+.prediction-page .result-panel .muted,
+.prediction-page .result-panel dt {
+    color: #c9dae5;
+}
+
+.prediction-page .result-panel .empty-state {
+    padding: 18px;
+    border: 1px dashed #658492;
+    border-radius: 12px;
+    background: #193344;
+    color: #e1edf4;
+}
+
+.prediction-page .result-panel .status-danger {
+    background: #4e2632;
+    color: #ffd0d8;
+}
+
+.prediction-page .result-panel .status-success {
+    background: #17463d;
+    color: #a4f3d8;
+}
+
+@media (max-width: 820px) {
+    .prediction-page .prediction-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    .prediction-page .fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

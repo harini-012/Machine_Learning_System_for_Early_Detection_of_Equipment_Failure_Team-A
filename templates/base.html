@@ -16,19 +16,32 @@
                 Predictive Maintenance
             </a>
 
-            <nav aria-label="Main navigation">
-                <a href="{{ url_for('home') }}"
-                   {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>Home</a>
-                <a href="{{ url_for('dashboard') }}"
-                   {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>Prediction</a>
+           <nav aria-label="Main navigation">
+    <a href="{{ url_for('home') }}"
+       {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
+        Home
+    </a>
 
-                {% for key, item in monitoring_pages.items() %}
-                    <a href="{{ url_for('monitoring_page', page=key) }}"
-                       {% if page_key == key %}aria-current="page"{% endif %}>
-                        {{ item.nav }}
-                    </a>
-                {% endfor %}
-            </nav>
+    <a href="{{ url_for('dashboard') }}"
+       {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>
+        Prediction
+    </a>
+
+    <a href="{{ url_for('equipment_list') }}"
+       {% if request.endpoint in ['equipment_list', 'add_equipment', 'edit_equipment', 'equipment_detail'] %}
+           aria-current="page"
+       {% endif %}>
+        Equipment
+    </a>
+
+    {% for key, item in monitoring_pages.items() if key != 'history' %}
+        <a href="{{ url_for('monitoring_page', page=key) }}"
+           {% if page_key == key %}aria-current="page"{% endif %}>
+            {{ item.nav }}
+        </a>
+    {% endfor %}
+</nav>
+            
         </div>
     </header>
 
