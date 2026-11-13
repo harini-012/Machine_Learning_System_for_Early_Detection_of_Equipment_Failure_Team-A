@@ -1,10 +1,20 @@
 # Machine Learning System for Early Detection of Equipment Failure (Team A)
 
-An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and Equipment Health Analytics** platform built on the AI4I 2020 Predictive Maintenance dataset (`10,000` records, `2,000` held-out test records).
+An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and Equipment Health Analytics** platform built on the AI4I 2020 Predictive Maintenance dataset (`10,000` total records, `2,000` held-out test records).
 
 ---
 
-## 1. System Architecture & Key Features
+## Live Deployed Application (Milestone 4)
+
+- **Deployed Production URL**: **https://machine-learning-system-for-early.onrender.com**
+- **Live Prediction Dashboard**: https://machine-learning-system-for-early.onrender.com/dashboard
+- **Standalone Prediction Test Form**: https://machine-learning-system-for-early.onrender.com/predict
+- **Equipment Registry & Management**: https://machine-learning-system-for-early.onrender.com/equipment
+- **Sample Live Equipment History (`EQ-RENDER-01` / `OBS-000001`)**: https://machine-learning-system-for-early.onrender.com/equipment/OBS-000001
+
+---
+
+## 1. System Architecture & Key Modules
 
 | Module | File(s) | Core Capabilities |
 | :--- | :--- | :--- |
@@ -13,13 +23,13 @@ An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and
 | **Maintenance Engine** | `src/maintenance_recommendations.py` | Maps physical sensor anomalies to AI4I failure modes (`TWF`, `HDF`, `PWF`, `OSF`, `RNF`) and generates prioritized maintenance steps & downtime estimates. |
 | **Alert Management** | `src/alert_management.py`, `src/run_alerts.py` | Generates deduplicated `Warning` and `Critical` alerts and manages lifecycle transitions (`New` $\rightarrow$ `Acknowledged` $\rightarrow$ `Resolved`). |
 | **Shared SQL Database, Health Scoring & Trends** | `src/database.py`, `src/health_scoring.py`, `src/trend_analysis.py`, `sql/schema.sql` | Dual-mode **Cloud PostgreSQL + Shared SQLite** database (`equipment_maintenance_db`) storing `12,220` records across 7 tables, computing $0\text{–}100$ Health Scores and Historical Trends (`Improving`, `Stable`, `Deteriorating`). |
-| **Web Application & Dashboards** | `app.py`, `templates/`, `static/`, `src/streamlit_dashboard.py` | Full Flask web application (`/`, `/dashboard`, `/predict`, `/equipment`, `/equipment/<id>`, `/monitoring/<page>`) and interactive Streamlit dashboard. |
+| **Web Application & Dashboards** | `app.py`, `templates/`, `static/`, `src/streamlit_dashboard.py` | Full Flask web application (`/`, `/dashboard`, `/predict`, `/equipment`, `/equipment/<id>`, `/monitoring/<page>`) deployed via Gunicorn on Render, plus interactive Streamlit dashboard. |
 
 ---
 
 ## 2. Held-Out Test Set Model Performance Verification
 
-Verified on the **2,000 held-out test records** (`data/processed/X_test.csv` and `data/processed/y_test.csv`) using `tests/test_model_performance.py` (saved in `reports/heldout_test_verification.json`):
+Verified on the **2,000 held-out test records** (`data/processed/X_test.csv` and `data/processed/y_test.csv`) using `tests/test_model_performance.py` (saved in `reports/heldout_test_verification.json` & `reports/heldout_test_verification.csv`):
 
 | Metric | Held-Out Test Result (`XGBClassifier`) |
 | :--- | ---: |
@@ -64,7 +74,7 @@ pip install -r requirements.txt
 
 ---
 
-## 4. Running the Application
+## 4. Running the Application Locally
 
 ### Option A: Run the Flask Web Application (`app.py`)
 ```bash
@@ -83,16 +93,9 @@ streamlit run src/streamlit_dashboard.py
 ```
 Open **http://localhost:8501** in your browser.
 
-### Option C: Run the End-to-End Milestone 3 Backend Pipeline
-```bash
-python -m src.run_milestone3_pipeline
-```
-
 ---
 
-## 5. Automated Testing & Verification Suite
-
-Run the complete test suite covering Flask routes, invalid input handling, equipment CRUD, prediction history persistence across page reopens, alert status transitions, health scoring, trend analysis, and held-out model evaluation:
+## 5. Automated Testing & Live Deployment Verification Results
 
 ```bash
 # Run Milestone 4 End-to-End & Model Performance Tests (8 tests)
@@ -102,29 +105,29 @@ python -m unittest discover -s tests -v
 python -m unittest src.test_member5 src.test_alert_management -v
 ```
 
-### Latest Test Execution Summary
-- `tests/test_milestone4_workflow.py`: **6 / 6 passed** (Core routes, Equipment Add/Edit/Delete, Invalid Input HTTP 400 validation, Multi-observation History Persistence, Alert Lifecycle & Health Scoring, Report Verification)
-- `tests/test_model_performance.py`: **2 / 2 passed** (Held-out 2,000-record evaluation & single-reading service consistency)
-- `src/test_member5.py` & `src/test_alert_management.py`: **11 / 11 passed**
+### Test Suite Results (`19 / 19` Passing)
+- **`tests/test_milestone4_workflow.py` (`6 / 6 OK`)**:
+  - `test_1_core_pages_load`: Verified `/`, `/dashboard`, `/predict`, `/equipment`, `/equipment/add`, and `/monitoring/<page>` return HTTP 200.
+  - `test_2_equipment_add_edit_and_delete_workflow`: Verified equipment registration, duplicate blocking, invalid type rejection, editing, and deletion.
+  - `test_3_invalid_sensor_input_validation`: Verified HTTP 400 error responses for unregistered equipment, non-numeric readings, and negative values.
+  - `test_4_prediction_and_history_persistence_across_reopen`: Submitted two readings (`No Failure` and `Failure`), reopened `/equipment/<id>`, and confirmed both readings and predictions persist and trigger `Deteriorating` trend detection.
+  - `test_5_alert_status_persistence_and_health_scoring`: Verified health score calculation and alert status persistence (`New` $\rightarrow$ `Acknowledged` $\rightarrow$ `Resolved`).
+  - `test_6_report_files_and_download_routes`: Confirmed all report CSVs exist and are populated.
+- **`tests/test_model_performance.py` (`2 / 2 OK`)**:
+  - Verified held-out test set metrics (`Accuracy = 99.05%`, `F1 = 84.30%`, `ROC-AUC = 97.50%`) and single-reading consistency between `src/prediction_service.py` and `src/model_integration.py`.
+- **Live Render URL Demo Verification (`https://machine-learning-system-for-early.onrender.com`)**:
+  - Registered `EQ-RENDER-01` via `POST /equipment/add` (`HTTP 200`).
+  - Submitted Reading #1 (`298.1 K`, `308.6 K`, `1551 rpm`, `42.8 Nm`, `35 min`) via `POST /dashboard` $\rightarrow$ returned `No Failure` (`HTTP 200`).
+  - Submitted Reading #2 (`300.5 K`, `310.2 K`, `1320 rpm`, `62.5 Nm`, `215 min`) via `POST /predict` $\rightarrow$ returned `Failure` (`HTTP 200`).
+  - Reopened `GET /equipment/EQ-RENDER-01` (`HTTP 200`) $\rightarrow$ confirmed both saved readings and predictions remain visible in the equipment history table and charts.
 
 ---
 
-## 6. Cloud Deployment Instructions (Render / Railway)
+## 6. Visual Overview & Evaluation Charts
 
-The repository includes `Procfile` and `render.yaml` for one-click cloud deployment:
+### Fleet Health, Risk, Trend & Database Summary
+![Fleet Health, Risk, Trend & Database Overview](reports/member5_dashboard_overview.png)
 
-1. Push the repository to GitHub.
-2. In **Render** (https://dashboard.render.com) or **Railway**:
-   - Create a new **Web Service** connected to this repository.
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-   - **Environment Variable**: Set `DATABASE_URL` to your shared Cloud PostgreSQL connection string (or leave unset to use the bundled SQLite database).
-3. Once deployed, open the live URL, register or select an equipment unit under `/equipment`, submit two readings under `/dashboard`, and reopen `/equipment/<equipment_id>` to verify persistent history.
-
----
-
-## 7. Dashboard & Evaluation Visuals
-
-- **Fleet Health, Risk, Trend & Database Summary**: `reports/member5_dashboard_overview.png`
-- **Model Comparison Chart**: `reports/model_comparison_chart.png`
-- **Confusion Matrices**: `reports/all_models_confusion_matrices.png`
+### Model Comparison & Confusion Matrices
+![Model Comparison Chart](reports/model_comparison_chart.png)
+![All Models Confusion Matrices](reports/all_models_confusion_matrices.png)
