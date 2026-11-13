@@ -1,5 +1,9 @@
 # Machine Learning System for Early Detection of Equipment Failure (Team A)
 
+[![Live Demo on Render](https://img.shields.io/badge/Live_Deployed_App-https%3A%2F%2Fmachine--learning--system--for--early.onrender.com-10b981?style=for-the-badge&logo=render)](https://machine-learning-system-for-early.onrender.com)
+
+> **Live Web Application Link**: **https://machine-learning-system-for-early.onrender.com**
+
 An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and Equipment Health Analytics** platform built on the AI4I 2020 Predictive Maintenance dataset (`10,000` total records, `2,000` held-out test records).
 
 ---
