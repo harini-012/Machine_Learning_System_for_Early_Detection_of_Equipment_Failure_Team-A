@@ -1,0 +1,72 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ mode }} Equipment | Predictive Maintenance{% endblock %}
+
+{% block content %}
+<section class="section">
+    <header class="page-heading">
+        <h1>{{ mode }} Equipment</h1>
+        <p class="muted">Enter the equipment details below.</p>
+    </header>
+
+    <form class="card" method="post">
+
+        {% if error %}
+            <p class="form-error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <div class="fields">
+            <div class="field">
+                <label for="equipment_id">Equipment ID</label>
+                <input
+                    id="equipment_id"
+                    name="equipment_id"
+                    type="text"
+                    maxlength="64"
+                    value="{{ item.get('equipment_id', '') }}"
+                    {% if mode == "Edit" %}readonly{% endif %}
+                    required>
+            </div>
+
+            <div class="field">
+                <label for="product_id">Product ID</label>
+                <input
+                    id="product_id"
+                    name="product_id"
+                    type="text"
+                    value="{{ item.get('product_id', '') }}">
+            </div>
+
+            <div class="field">
+                <label for="equipment_type">Equipment Type</label>
+                <select id="equipment_type" name="equipment_type" required>
+                    <option value="">Select type</option>
+
+                    {% for kind in ["L", "M", "H"] %}
+                    <option value="{{ kind }}"
+                        {% if item.get('equipment_type') == kind %}
+                            selected
+                        {% endif %}>
+                        {{ kind }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="description">Description</label>
+                <textarea id="description"
+                          name="description"
+                          rows="3">{{ item.get('description', '') }}</textarea>
+            </div>
+        </div>
+
+        <button class="button submit" type="submit">
+            {{ mode }} Equipment
+        </button>
+
+        <a href="{{ url_for('equipment_list') }}">Cancel</a>
+    </form>
+</section>
+{% endblock %}

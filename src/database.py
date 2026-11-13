@@ -338,6 +338,95 @@ def upsert_equipment(
 
 
 # ---------------------------------------------------------------------------
+# Equipment Management (Milestone 4)
+# ---------------------------------------------------------------------------
+
+def get_all_equipment() -> List[Dict[str, Any]]:
+    """Retrieve all registered equipment."""
+    init_database()
+
+    with managed_connection() as (conn, backend):
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT * FROM equipment ORDER BY equipment_id ASC;"
+        )
+        return _rows_to_dicts(cur.fetchall())
+
+
+def get_equipment_by_id(equipment_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieve details of one equipment record."""
+    init_database()
+    eq_id = str(equipment_id).strip()
+
+    with managed_connection() as (conn, backend):
+        placeholder = "%s" if backend == "postgresql" else "?"
+        cur = conn.cursor()
+
+        cur.execute(
+            f"SELECT * FROM equipment WHERE equipment_id = {placeholder};",
+            (eq_id,)
+        )
+
+        rows = _rows_to_dicts(cur.fetchall())
+        return rows[0] if rows else None
+
+
+def update_equipment(
+    equipment_id: str,
+    product_id: Optional[str],
+    equipment_type: str,
+    description: Optional[str]
+) -> bool:
+    """Update an existing equipment record."""
+    init_database()
+
+    eq_id = str(equipment_id).strip()
+    eq_type = str(equipment_type).strip().upper()
+
+    if eq_type not in ("L", "M", "H"):
+        raise ValueError("Equipment type must be L, M, or H.")
+
+    with managed_connection() as (conn, backend):
+        placeholder = "%s" if backend == "postgresql" else "?"
+        cur = conn.cursor()
+
+        cur.execute(
+            f"""
+            UPDATE equipment
+            SET product_id = {placeholder},
+                equipment_type = {placeholder},
+                description = {placeholder},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE equipment_id = {placeholder};
+            """,
+            (product_id, eq_type, description, eq_id)
+        )
+
+        return cur.rowcount > 0
+
+
+
+def delete_equipment(equipment_id: str) -> bool:
+    """Delete equipment and its dependent records."""
+    init_database()
+
+    eq_id = str(equipment_id).strip()
+
+    if not eq_id:
+        raise ValueError("Equipment ID cannot be empty.")
+
+    with managed_connection() as (conn, backend):
+        placeholder = "%s" if backend == "postgresql" else "?"
+        cur = conn.cursor()
+
+        cur.execute(
+            f"DELETE FROM equipment WHERE equipment_id = {placeholder};",
+            (eq_id,)
+        )
+
+        return cur.rowcount > 0
+
+# ---------------------------------------------------------------------------
 # 1. Sensor Readings (Member 1 & Member 2)
 # ---------------------------------------------------------------------------
 

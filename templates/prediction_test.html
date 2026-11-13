@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Equipment Failure Prediction</title>
+</head>
+<body>
+    <main>
+        <h1>Equipment Failure Prediction</h1>
+        <p>Enter one set of sensor readings. Use Kelvin for temperatures.</p>
+
+        {% if error %}
+            <p role="alert">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('prediction_page') }}">
+            <p>
+                <label for="equipment_id">Equipment ID</label>
+                <input id="equipment_id" name="equipment_id" maxlength="100"
+                       value="{{ values.get('equipment_id', '') }}" required>
+            </p>
+
+            <p>
+                <label for="equipment_type">Equipment type</label>
+                <select id="equipment_type" name="equipment_type" required>
+                    <option value="">Select type</option>
+                    {% for equipment_type in ['L', 'M', 'H'] %}
+                        <option value="{{ equipment_type }}"
+                            {% if values.get('equipment_type') == equipment_type %}selected{% endif %}>
+                            {{ equipment_type }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </p>
+
+            {% for field_name, label, minimum in sensor_fields %}
+                <p>
+                    <label for="{{ field_name }}">{{ label }}</label>
+                    <input id="{{ field_name }}" name="{{ field_name }}"
+                           type="number" min="{{ minimum }}" step="any"
+                           value="{{ values.get(field_name, '') }}" required>
+                </p>
+            {% endfor %}
+
+            <button type="submit">Predict failure</button>
+        </form>
+
+        {% if result %}
+            <section aria-live="polite">
+                <h2>Result for {{ result.equipment_id }}</h2>
+                <p>Prediction: <strong>{{ result.prediction_label }}</strong></p>
+                <p>Failure probability: {{ "%.2f"|format(result.failure_probability * 100) }}%</p>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

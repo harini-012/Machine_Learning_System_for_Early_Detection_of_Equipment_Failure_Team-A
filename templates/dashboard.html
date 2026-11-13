@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Prediction | Predictive Maintenance{% endblock %}
+
+{% block content %}
+<section class="section prediction-page">
+    <header class="page-heading">
+        <h1>Equipment prediction</h1>
+        <p class="muted">Enter temperatures in Kelvin. Add 273.15 to convert from Celsius.</p>
+    </header>
+
+    <div class="prediction-grid">
+        <form class="card prediction-form"
+      method="post"
+      action="{{ url_for('dashboard') }}">
+    <h2>Sensor readings</h2>
+
+    {% if error %}
+        <p class="form-error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <div class="field equipment-picker">
+        <label for="equipment_id">Registered equipment</label>
+        <select id="equipment_id" name="equipment_id" required>
+            <option value="">Choose equipment</option>
+            {% for item in equipment %}
+                <option value="{{ item.equipment_id }}"
+                    {% if values.get('equipment_id') == item.equipment_id %}selected{% endif %}>
+                    {{ item.equipment_id }} · Type {{ item.equipment_type }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if equipment %}
+        <div class="fields">
+            {% for name, label, minimum, example in dashboard_fields %}
+                <div class="field">
+                    <label for="{{ name }}">{{ label }}</label>
+                    <input id="{{ name }}"
+                           name="{{ name }}"
+                           type="number"
+                           min="{{ minimum }}"
+                           step="any"
+                           placeholder="{{ example }}"
+                           value="{{ values.get(name, '') }}"
+                           required>
+                </div>
+            {% endfor %}
+        </div>
+
+        <button class="button submit" type="submit">
+            Predict failure <span aria-hidden="true">→</span>
+        </button>
+    {% else %}
+        <p class="empty-state">
+            Register a machine to run a prediction.
+            <a class="text-link" href="{{ url_for('add_equipment') }}">Add equipment</a>
+        </p>
+    {% endif %}
+</form>
+
+        <section class="card result-panel" aria-labelledby="result-title">
+            <h2 id="result-title">Prediction result</h2>
+
+            {% if result %}
+                {% set probability = result.failure_probability * 100 %}
+                {% set failure = result.predicted_failure == 1 %}
+
+                <span class="status {{ 'status-danger' if failure else 'status-success' }}">
+                    {{ result.prediction_label }}
+                </span>
+
+                <p class="probability">{{ "%.2f"|format(probability) }}%</p>
+                <label class="muted" for="failure-probability">Estimated failure probability</label>
+
+                <progress id="failure-probability" value="{{ probability }}" max="100"
+                          class="{{ 'bar-danger' if failure else 'bar-success' }}">
+                    {{ "%.2f"|format(probability) }}%
+                </progress>
+
+                <dl class="result-details">
+                    <div>
+                        <dt>Equipment ID</dt>
+                        <dd>{{ result.equipment_id }}</dd>
+                    </div>
+                    <div>
+                        <dt>Decision threshold</dt>
+                        <dd>50%</dd>
+                    </div>
+                </dl>
+
+                <p class="muted">Based on the last submitted readings.</p>
+            {% else %}
+                <p class="empty-state">Submit sensor readings to see the model’s prediction.</p>
+            {% endif %}
+        </section>
+    </div>
+</section>
+{% endblock %}

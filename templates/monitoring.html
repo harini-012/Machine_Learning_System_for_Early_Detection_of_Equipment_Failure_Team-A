@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} | Predictive Maintenance{% endblock %}
+
+{% block content %}
+<section class="section">
+    <header class="page-heading">
+        <h1>{{ page.title }}</h1>
+        <p class="muted">{{ page.description }}</p>
+    </header>
+
+    <div class="card">
+        <p class="empty-state">{{ page.empty }}</p>
+        <a class="text-link" href="{{ url_for('dashboard') }}">Go to prediction →</a>
+    </div>
+</section>
+{% endblock %}
