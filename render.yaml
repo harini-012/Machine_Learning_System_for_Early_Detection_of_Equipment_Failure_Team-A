@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: equipment-failure-detection-team-a
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
