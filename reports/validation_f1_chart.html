@@ -1,0 +1,61 @@
+<!-- Design plan: tokens -->
+<style>
+/* Token definitions */
+:root {
+  --bg: #fafafa; /* light background */
+  --bg-dark: #1e1e1e; /* dark background */
+  --fg: #222222; /* light foreground (text) */
+  --fg-dark: #e0e0e0; /* dark foreground */
+  --accent: #4c78a8; /* chart color */
+  --font-body: 'Inter', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--bg-dark);
+    --fg: var(--fg-dark);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: var(--bg-dark);
+  --fg: var(--fg-dark);
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  margin: 0;
+  padding: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-top, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+}
+img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+}
+figcaption {
+  font-size: 0.9rem;
+  color: var(--fg);
+  margin-top: 0.5rem;
+  text-align: center;
+}
+</style>
+<title>Validation F1 Chart</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<h1>Validation F1 Scores for Candidate Models</h1>
+<figure>
+  <img src="validation_f1.png" alt="Bar chart showing validation F1 scores per model configuration" />
+  <figcaption>Higher F1 indicates better validation performance. The XGBoost model with 200 estimators, depth 3, and learning‑rate 0.1 achieved the highest score (0.701).</figcaption>
+</figure>
