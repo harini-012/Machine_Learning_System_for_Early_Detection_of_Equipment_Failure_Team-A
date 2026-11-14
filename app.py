@@ -43,7 +43,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "predictive-maintenance-team
 init_database()
 
 # Register Member 4's Alert Status & CSV Report Blueprint
-app.register_blueprint(report_bp)
+
 
 
 predict_reading = create_prediction_service()
@@ -180,7 +180,7 @@ def render_prediction(template_name):
     context["values"] = request.form
 
     try:
-        readings = parse_readings(request.form, allow_direct_type=allow_direct_type)
+        readings = parse_readings(request.form)
 
         # 1. Generate the ML failure prediction (Member 1)
         result = predict_reading(readings)
@@ -274,12 +274,12 @@ def home():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    return render_prediction("dashboard.html", allow_direct_type=False)
+    return render_prediction("dashboard.html")
 
 
 @app.route("/predict", methods=["GET", "POST"])
 def prediction_page():
-    return render_prediction("prediction_test.html", allow_direct_type=True)
+    return render_prediction("prediction_test.html")
 
 
 @app.route("/monitoring/<page>")
@@ -461,7 +461,7 @@ def update_maintenance(maintenance_id):
             flash("Maintenance record could not be found.", "error")
 
     return redirect(url_for("monitoring", page="maintenance"), code=303)
-
+app.register_blueprint(report_bp)
 
 if __name__ == "__main__":
 
