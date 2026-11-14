@@ -8,9 +8,228 @@
         <p class="muted">{{ page.description }}</p>
     </header>
 
+    <!-- Download Reports Toolbar -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="equipment-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h2 style="margin-bottom:0.25rem;">Download CSV Reports</h2>
+                <p class="muted">Export stored predictions, maintenance activities, and held-out model evaluation metrics.</p>
+            </div>
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                <a class="button" href="{{ url_for('reports.download_predicted_failures') }}">
+                    ↓ Predicted Failures CSV
+                </a>
+                <a class="button" href="{{ url_for('reports.download_maintenance_activities') }}">
+                    ↓ Maintenance Activities CSV
+                </a>
+                <a class="button" href="{{ url_for('reports.download_model_performance') }}">
+                    ↓ Model Performance CSV
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if summary %}
+        <div class="monitoring-grid" style="margin-bottom: 1.5rem;">
+            {% for label, count in summary.items() %}
+                <div class="card">
+                    <h3>{{ label }}</h3>
+                    <p class="probability" style="margin:0.25rem 0;">{{ count }}</p>
+                    <p class="muted">Equipment records</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="card">
-        <p class="empty-state">{{ page.empty }}</p>
-        <a class="text-link" href="{{ url_for('dashboard') }}">Go to prediction →</a>
+        {% if rows %}
+            <div class="table-wrapper" style="overflow-x:auto;">
+                {% if page_key == 'risk' %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Equipment ID</th>
+                                <th>Risk Level</th>
+                                <th>Health Score</th>
+                                <th>Health Status</th>
+                                <th>Failure Prob</th>
+                                <th>Abnormal Sensors</th>
+                                <th>Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td>
+                                        <a class="text-link" href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">
+                                            <strong>{{ row.equipment_id }}</strong>
+                                        </a>
+                                    </td>
+                                    <td><strong>{{ row.risk_level }}</strong></td>
+                                    <td>{{ "%.2f"|format(row.health_score or 0) }}</td>
+                                    <td>{{ row.health_status or '—' }}</td>
+                                    <td>{{ "%.2f"|format((row.failure_probability or 0) * 100) }}%</td>
+                                    <td>{{ row.abnormal_sensors }}</td>
+                                    <td>{{ row.risk_summary }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                {% elif page_key == 'anomalies' %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Equipment ID</th>
+                                <th>Anomaly Count</th>
+                                <th>Abnormal Sensors</th>
+                                <th>Risk Level</th>
+                                <th>Air Temp [K]</th>
+                                <th>Process Temp [K]</th>
+                                <th>Speed [rpm]</th>
+                                <th>Torque [Nm]</th>
+                                <th>Tool Wear [min]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td>
+                                        <a class="text-link" href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">
+                                            <strong>{{ row.equipment_id }}</strong>
+                                        </a>
+                                    </td>
+                                    <td>{{ row.anomaly_count }}</td>
+                                    <td><strong>{{ row.abnormal_sensors }}</strong></td>
+                                    <td>{{ row.risk_level }}</td>
+                                    <td>{{ row.air_temperature }}</td>
+                                    <td>{{ row.process_temperature }}</td>
+                                    <td>{{ row.rotational_speed }}</td>
+                                    <td>{{ row.torque }}</td>
+                                    <td>{{ row.tool_wear }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                {% elif page_key == 'alerts' %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Equipment ID</th>
+                                <th>Risk Level</th>
+                                <th>Failure Prob</th>
+                                <th>Condition</th>
+                                <th>Status</th>
+                                <th>Description</th>
+                                <th>Update Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td>
+                                        <a class="text-link" href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">
+                                            <strong>{{ row.equipment_id }}</strong>
+                                        </a>
+                                    </td>
+                                    <td><strong>{{ row.risk_level }}</strong></td>
+                                    <td>{{ "%.2f"|format((row.failure_probability or 0) * 100) }}%</td>
+                                    <td>{{ row.condition }}</td>
+                                    <td><strong>{{ row.status }}</strong></td>
+                                    <td>{{ row.description }}</td>
+                                    <td>
+                                        {% if row.status != 'Resolved' %}
+                                            <div style="display:flex; gap:0.4rem;">
+                                                {% if row.status == 'New' %}
+                                                    <form method="post" action="{{ url_for('reports.change_alert_status', alert_id=row.alert_id) }}">
+                                                        <input type="hidden" name="status" value="Acknowledged">
+                                                        <button class="equipment-action" type="submit">Acknowledge</button>
+                                                    </form>
+                                                {% endif %}
+                                                <form method="post" action="{{ url_for('reports.change_alert_status', alert_id=row.alert_id) }}">
+                                                    <input type="hidden" name="status" value="Resolved">
+                                                    <button class="equipment-action equipment-action-history" type="submit">Resolve</button>
+                                                </form>
+                                            </div>
+                                        {% else %}
+                                            <span class="muted">Resolved</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                {% elif page_key == 'maintenance' %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Equipment ID</th>
+                                <th>Risk Level</th>
+                                <th>Suspected Issue</th>
+                                <th>Action Type</th>
+                                <th>Est. Downtime</th>
+                                <th>Recommended Maintenance Steps</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td>
+                                        <a class="text-link" href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">
+                                            <strong>{{ row.equipment_id }}</strong>
+                                        </a>
+                                    </td>
+                                    <td><strong>{{ row.risk_level }}</strong></td>
+                                    <td>{{ row.issue }}</td>
+                                    <td><strong>{{ row.action_type }}</strong></td>
+                                    <td>{{ row.estimated_downtime }}</td>
+                                    <td>{{ row.recommendation }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                {% elif page_key == 'history' %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Equipment ID</th>
+                                <th>Overall Trend</th>
+                                <th>Sensor Trend</th>
+                                <th>Failure Prob Trend</th>
+                                <th>Health Score Trend</th>
+                                <th>Latest Health Score</th>
+                                <th>Latest Failure Prob</th>
+                                <th>Active Alerts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td>
+                                        <a class="text-link" href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">
+                                            <strong>{{ row.equipment_id }}</strong>
+                                        </a>
+                                    </td>
+                                    <td><strong>{{ row.overall_trend }}</strong></td>
+                                    <td>{{ row.sensor_trend }}</td>
+                                    <td>{{ row.failure_probability_trend }}</td>
+                                    <td>{{ row.health_score_trend }}</td>
+                                    <td>{{ "%.2f"|format(row.latest_health_score or 0) }}</td>
+                                    <td>{{ "%.2f"|format((row.latest_failure_probability or 0) * 100) }}%</td>
+                                    <td>{{ row.active_alert_count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="empty-state">{{ page.empty }}</p>
+            <a class="text-link" href="{{ url_for('dashboard') }}">Go to prediction →</a>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

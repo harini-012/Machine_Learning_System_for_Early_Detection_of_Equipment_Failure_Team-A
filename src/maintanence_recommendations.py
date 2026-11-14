@@ -1,5 +1,5 @@
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Physical constants and thresholds from AI4I 2020 domain specification
@@ -208,7 +208,7 @@ def process_equipment_recommendations(
 
     result_payload = {
         "equipment_id": equipment_id,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "risk_level": recommendation_package["risk_level"],
         "failure_probability": round(failure_probability, 4),
         "primary_issue": primary_issue,

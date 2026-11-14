@@ -1,9 +1,10 @@
 import math
-
-from flask import Flask, abort, render_template, request, redirect, url_for
 from datetime import datetime, timezone
-from src.prediction_service import create_prediction_service
+from flask import Flask, abort, render_template, request, redirect, url_for
 
+from src.prediction_service import create_prediction_service
+from src.analysis_service import run_post_prediction_analysis, get_monitoring_data
+from src.report_routes import report_bp
 from src.database import (
     get_all_equipment,
     get_equipment_by_id,
@@ -14,7 +15,9 @@ from src.database import (
     save_prediction,
     retrieve_equipment_history,
 )
+
 app = Flask(__name__)
+app.register_blueprint(report_bp)
 predict_reading = create_prediction_service()
 
 SENSOR_FIELDS = (
@@ -27,34 +30,34 @@ SENSOR_FIELDS = (
 
 MONITORING_PAGES = {
     "risk": {
-        "title": "Risk classification",
+        "title": "Risk classification & Health Scores",
         "nav": "Risk",
-        "description": "Review the risk level assigned to equipment readings.",
-        "empty": "Risk classifications will appear here when risk analysis is connected.",
+        "description": "Review equipment health scores (0–100) and risk levels assigned to equipment readings.",
+        "empty": "No risk classifications recorded yet.",
     },
     "anomalies": {
         "title": "Anomaly detection",
         "nav": "Anomalies",
-        "description": "Review sensor readings flagged as abnormal.",
-        "empty": "Flagged sensor readings will appear here when anomaly detection is connected.",
+        "description": "Review sensor readings flagged outside normal IQR operating thresholds.",
+        "empty": "No abnormal sensor readings currently flagged.",
     },
     "alerts": {
         "title": "Equipment alerts",
         "nav": "Alerts",
-        "description": "Review equipment that requires attention.",
-        "empty": "Equipment alerts will appear here when alert records are connected.",
+        "description": "Review Warning and Critical alerts and manage New, Acknowledged, and Resolved statuses.",
+        "empty": "No active equipment alerts.",
     },
     "maintenance": {
         "title": "Maintenance recommendations",
         "nav": "Maintenance",
-        "description": "Review recommended actions for flagged equipment.",
-        "empty": "Recommendations will appear here when maintenance records are connected.",
+        "description": "Review rule-based AI4I failure categories and prioritized maintenance actions.",
+        "empty": "No actionable maintenance recommendations.",
     },
     "history": {
-        "title": "Historical trends",
-        "nav": "History",
-        "description": "Track changes in sensor readings and predictions over time.",
-        "empty": "Trends will appear here when saved equipment readings are connected.",
+        "title": "Historical trends & Reports",
+        "nav": "Trends & Reports",
+        "description": "Track Improving, Stable, and Deteriorating trajectories and download CSV reports.",
+        "empty": "No historical trends available yet.",
     },
 }
 
@@ -64,19 +67,22 @@ def shared_template_data():
     return {"monitoring_pages": MONITORING_PAGES}
 
 
-def parse_readings(form):
+def parse_readings(form, allow_direct_type: bool = False):
     equipment_id = form.get("equipment_id", "").strip()
 
     if not equipment_id or len(equipment_id) > 100:
         raise ValueError("Enter an equipment ID with 1–100 characters.")
 
-    # Fetch registered equipment from the database.
     equipment = get_equipment_by_id(equipment_id)
 
     if equipment is None:
-        raise ValueError("Selected equipment is not registered.")
+        direct_type = form.get("equipment_type", "").strip().upper()
+        if allow_direct_type and direct_type in ("L", "M", "H"):
+            upsert_equipment(equipment_id=equipment_id, equipment_type=direct_type)
+            equipment = get_equipment_by_id(equipment_id)
+        else:
+            raise ValueError("Selected equipment is not registered.")
 
-    # Always use the equipment type stored in the database.
     equipment_type = equipment["equipment_type"]
 
     readings = {
@@ -98,7 +104,9 @@ def parse_readings(form):
         readings[feature_name] = value
 
     return readings
-def render_prediction(template_name):
+
+
+def render_prediction(template_name, allow_direct_type: bool = False):
     context = {
         "sensor_fields": [field[:3] for field in SENSOR_FIELDS],
         "dashboard_fields": SENSOR_FIELDS,
@@ -114,19 +122,15 @@ def render_prediction(template_name):
     context["values"] = request.form
 
     try:
-        readings = parse_readings(request.form)
+        readings = parse_readings(request.form, allow_direct_type=allow_direct_type)
 
-        # Generate the model prediction.
+        # 1. Generate the ML failure prediction (Member 1)
         result = predict_reading(readings)
 
-        # Use the same timestamp for both database records.
-        observation_time = datetime.now(timezone.utc).isoformat(
-            timespec="seconds"
-        )
+        observation_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        equipment = get_equipment_by_id(readings["equipment_id"]) or {}
 
-        equipment = get_equipment_by_id(readings["equipment_id"])
-
-        # Save the five sensor readings as a new observation.
+        # 2. Save the five sensor readings as a new observation (Member 3/5)
         insert_sensor_reading(
             equipment_id=readings["equipment_id"],
             timestamp=observation_time,
@@ -139,7 +143,7 @@ def render_prediction(template_name):
             product_id=equipment.get("product_id"),
         )
 
-        # Save the corresponding model prediction.
+        # 3. Save the corresponding model prediction (Member 1/5)
         save_prediction(
             equipment_id=result["equipment_id"],
             failure_pred=result["predicted_failure"],
@@ -148,7 +152,16 @@ def render_prediction(template_name):
             prediction_label=result["prediction_label"],
         )
 
+        # 4. Run post-prediction analysis: Health score, anomalies, risk, maintenance & alerts (Member 2/3/4/5)
+        analysis = run_post_prediction_analysis(
+            readings=readings,
+            prediction_result=result,
+            timestamp=observation_time,
+            save_to_db=True,
+        )
+        result.update(analysis)
         context["result"] = result
+        context["equipment"] = get_all_equipment()
 
     except ValueError as exc:
         context["error"] = str(exc)
@@ -162,6 +175,8 @@ def render_prediction(template_name):
         return render_template(template_name, **context), 500
 
     return render_template(template_name, **context)
+
+
 @app.get("/")
 def home():
     return render_template("home.html")
@@ -169,12 +184,12 @@ def home():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    return render_prediction("dashboard.html")
+    return render_prediction("dashboard.html", allow_direct_type=False)
 
 
 @app.route("/predict", methods=["GET", "POST"])
 def prediction_page():
-    return render_prediction("prediction_test.html")
+    return render_prediction("prediction_test.html", allow_direct_type=True)
 
 
 @app.get("/monitoring/<page>")
@@ -183,7 +198,14 @@ def monitoring_page(page):
     if details is None:
         abort(404)
 
-    return render_template("monitoring.html", page=details, page_key=page)
+    monitoring_data = get_monitoring_data(page, limit=100)
+    return render_template(
+        "monitoring.html",
+        page=details,
+        page_key=page,
+        summary=monitoring_data["summary"],
+        rows=monitoring_data["rows"],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -193,11 +215,7 @@ def monitoring_page(page):
 @app.get("/equipment")
 def equipment_list():
     equipment = get_all_equipment()
-
-    return render_template(
-        "equipment.html",
-        equipment=equipment
-    )
+    return render_template("equipment.html", equipment=equipment)
 
 
 @app.route("/equipment/add", methods=["GET", "POST"])
@@ -213,7 +231,7 @@ def add_equipment():
                 "equipment_form.html",
                 mode="Add",
                 item=request.form,
-                error="Equipment ID must contain between 1 and 64 characters."
+                error="Equipment ID must contain between 1 and 64 characters.",
             ), 400
 
         if equipment_type not in ("L", "M", "H"):
@@ -221,7 +239,7 @@ def add_equipment():
                 "equipment_form.html",
                 mode="Add",
                 item=request.form,
-                error="Select a valid equipment type."
+                error="Select a valid equipment type.",
             ), 400
 
         if get_equipment_by_id(equipment_id):
@@ -229,7 +247,7 @@ def add_equipment():
                 "equipment_form.html",
                 mode="Add",
                 item=request.form,
-                error="This equipment ID is already registered."
+                error="This equipment ID is already registered.",
             ), 400
 
         try:
@@ -237,7 +255,7 @@ def add_equipment():
                 equipment_id=equipment_id,
                 product_id=product_id,
                 equipment_type=equipment_type,
-                description=description
+                description=description,
             )
             return redirect(url_for("equipment_list"))
 
@@ -247,15 +265,10 @@ def add_equipment():
                 "equipment_form.html",
                 mode="Add",
                 item=request.form,
-                error="Unable to register equipment. Please try again."
+                error="Unable to register equipment. Please try again.",
             ), 500
 
-    return render_template(
-        "equipment_form.html",
-        mode="Add",
-        item={},
-        error=None
-    )
+    return render_template("equipment_form.html", mode="Add", item={}, error=None)
 
 
 @app.route("/equipment/edit/<equipment_id>", methods=["GET", "POST"])
@@ -275,7 +288,7 @@ def edit_equipment(equipment_id):
                 "equipment_form.html",
                 mode="Edit",
                 item={**item, **request.form},
-                error="Select a valid equipment type."
+                error="Select a valid equipment type.",
             ), 400
 
         try:
@@ -283,7 +296,7 @@ def edit_equipment(equipment_id):
                 equipment_id=equipment_id,
                 product_id=product_id,
                 equipment_type=equipment_type,
-                description=description
+                description=description,
             )
             return redirect(url_for("equipment_list"))
 
@@ -293,15 +306,11 @@ def edit_equipment(equipment_id):
                 "equipment_form.html",
                 mode="Edit",
                 item={**item, **request.form},
-                error="Unable to update equipment. Please try again."
+                error="Unable to update equipment. Please try again.",
             ), 500
 
-    return render_template(
-        "equipment_form.html",
-        mode="Edit",
-        item=item,
-        error=None
-    )
+    return render_template("equipment_form.html", mode="Edit", item=item, error=None)
+
 
 @app.get("/equipment/<equipment_id>")
 def equipment_detail(equipment_id):
@@ -322,6 +331,8 @@ def equipment_detail(equipment_id):
         alerts=history["alerts"],
         health_scores=history["health_scores"],
     )
+
+
 @app.post("/equipment/delete/<equipment_id>")
 def remove_equipment(equipment_id):
     item = get_equipment_by_id(equipment_id)
@@ -336,6 +347,7 @@ def remove_equipment(equipment_id):
     except Exception:
         app.logger.exception("Failed to delete equipment")
         abort(500)
+
 
 if __name__ == "__main__":
     app.run()
