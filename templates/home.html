@@ -1,35 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Home | Predictive Maintenance{% endblock %}
+{% block title %}Overview | Predictive Maintenance{% endblock %}
 
 {% block content %}
 <section class="hero">
     <div>
-        <h1>Monitor equipment health</h1>
+        <span class="hero-badge">Real-Time ML Diagnostics</span>
+        <h1>Equipment Failure Prediction &amp; Health Monitoring</h1>
         <p>
-            Enter machine sensor readings to estimate failure probability
-            using your trained predictive maintenance model.
+            Evaluate industrial machine sensor telemetry using our calibrated XGBoost model
+            to detect early signs of equipment failure, compute 0–100 health scores, and prioritize maintenance.
         </p>
-        <a class="button" href="{{ url_for('dashboard') }}">Run a prediction →</a>
+        <div class="hero-actions">
+            <a class="button" href="{{ url_for('dashboard') }}">Run a Prediction →</a>
+            <a class="button-outline" href="{{ url_for('equipment_list') }}">Manage Equipment</a>
+        </div>
     </div>
 
     <aside class="hero-panel" aria-labelledby="workflow-title">
-        <h2 id="workflow-title">Prediction workflow</h2>
+        <h2 id="workflow-title">System Workflow</h2>
         <ol>
-            <li>Enter an equipment ID and select its type.</li>
-            <li>Add the five sensor readings.</li>
-            <li>Review the prediction and failure probability.</li>
+            <li>Select a registered machine from the equipment registry.</li>
+            <li>Submit the five real-time operating sensor readings.</li>
+            <li>Review failure probability, health score, and maintenance steps.</li>
         </ol>
     </aside>
 </section>
 
 <section class="section" aria-labelledby="monitoring-title">
-    <h2 id="monitoring-title">Monitoring</h2>
+    <div class="page-heading">
+        <div>
+            <h2 id="monitoring-title" class="section-title" style="margin:0;">Monitoring &amp; Analytics Modules</h2>
+            <p class="muted">Inspect fleet health scores, IQR sensor anomalies, active alerts, and exportable CSV reports.</p>
+        </div>
+        <div class="toolbar-actions">
+            <a class="button-outline" href="{{ url_for('reports.download_predicted_failures') }}">↓ Failures CSV</a>
+            <a class="button-outline" href="{{ url_for('reports.download_maintenance_activities') }}">↓ Maintenance CSV</a>
+            <a class="button-outline" href="{{ url_for('reports.download_model_performance') }}">↓ Model Metrics CSV</a>
+        </div>
+    </div>
+
     <div class="monitoring-grid">
         {% for key, item in monitoring_pages.items() %}
-            <a class="card module-card"
-               href="{{ url_for('monitoring_page', page=key) }}">
-                <h3>{{ item.title }} <span aria-hidden="true">↗</span></h3>
-                <p class="muted">{{ item.description }}</p>
+            <a class="module-card" href="{{ url_for('monitoring_page', page=key) }}">
+                <div>
+                    <h3>{{ item.title }} <span aria-hidden="true">→</span></h3>
+                    <p class="muted">{{ item.description }}</p>
+                </div>
             </a>
         {% endfor %}
     </div>
