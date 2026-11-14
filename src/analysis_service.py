@@ -302,3 +302,201 @@ def get_monitoring_data(page_key: str, limit: int = 100) -> Dict[str, Any]:
             return {"summary": summary, "rows": rows}
 
     return {"summary": {}, "rows": []}
+"""
+Milestone 4 - Member 4: Post-Prediction Analysis & Persistence Service
+Aligned with Member 5's exact src/database.py schema and function signatures.
+"""
+
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict
+
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
+
+from src import database as db
+from src.maintenance_recommendations import process_equipment_recommendations
+
+# Import Milestone 3 helpers with safe fallbacks if function names differ
+try:
+    from src.health_scoring import calculate_health_score
+except ImportError:
+    def calculate_health_score(equipment_id: str, failure_probability: float) -> Dict[str, Any]:
+        score = round(100.0 * (1.0 - failure_probability), 2)
+        status = "Good" if score >= 80 else ("Moderate" if score >= 50 else "Poor")
+        return {"equipment_id": equipment_id, "health_score": score, "health_status": status}
+
+try:
+    from src.anomaly_detection import detect_anomalies_and_risk
+except ImportError:
+    def detect_anomalies_and_risk(
+        equipment_id: str, sensor_data: Dict[str, Any], failure_probability: float
+    ) -> Dict[str, Any]:
+        # IQR bounds derived from AI4I 2020 dataset
+        bounds = {
+            "air_temperature": (293.5, 306.3, "Air temperature [K]"),
+            "process_temperature": (305.35, 314.55, "Process temperature [K]"),
+            "rotational_speed": (1150.0, 1894.0, "Rotational speed [rpm]"),
+            "torque": (13.3, 66.1, "Torque [Nm]"),
+            "tool_wear": (0.0, 240.0, "Tool wear [min]"),
+        }
+        abnormal = []
+        for key, (low, high, label) in bounds.items():
+            val = float(sensor_data.get(key, (low + high) / 2))
+            if val < low or val > high:
+                abnormal.append(label)
+
+        count = len(abnormal)
+        if failure_probability >= 0.70 or count >= 2:
+            risk = "Critical"
+        elif failure_probability >= 0.30 or count == 1:
+            risk = "Warning"
+        else:
+            risk = "Healthy"
+
+        summary = (
+            f"{risk} condition. Abnormal sensors: {', '.join(abnormal)}."
+            if abnormal
+            else f"{risk} equipment condition."
+        )
+        return {
+            "equipment_id": equipment_id,
+            "abnormal_sensors": abnormal,
+            "anomaly_count": count,
+            "risk_level": risk,
+            "risk_summary": summary,
+        }
+
+
+def run_full_post_prediction_analysis(
+    equipment_id: str,
+    sensor_data: Dict[str, Any],
+    predicted_failure: int,
+    failure_probability: float,
+    timestamp: str = None,
+) -> Dict[str, Any]:
+    """Runs post-prediction analytics and saves all records to PostgreSQL/SQLite."""
+    ts = timestamp or datetime.now(timezone.utc).isoformat()
+    db.init_database()
+
+    # 1. Calculate & Save Equipment Health Score
+    health_result = calculate_health_score(
+        equipment_id=equipment_id,
+        failure_probability=failure_probability,
+    )
+    health_score = float(health_result.get("health_score", round(100.0 * (1.0 - failure_probability), 2)))
+    health_status = health_result.get("health_status", "Good")
+
+    db.save_health_score_record(
+        equipment_id=equipment_id,
+        failure_probability=failure_probability,
+        health_score=health_score,
+        health_status=health_status,
+        timestamp=ts,
+    )
+
+    # 2. Detect Sensor Anomalies & Save Risk Classification
+    anomaly_result = detect_anomalies_and_risk(
+        equipment_id=equipment_id,
+        sensor_data=sensor_data,
+        failure_probability=failure_probability,
+    )
+    risk_level = anomaly_result.get("risk_level", "Healthy")
+    abnormal_list = anomaly_result.get("abnormal_sensors", [])
+    abnormal_str = ", ".join(abnormal_list) if isinstance(abnormal_list, list) else str(abnormal_list)
+    anomaly_count = int(anomaly_result.get("anomaly_count", len(abnormal_list) if isinstance(abnormal_list, list) else 0))
+    risk_summary = anomaly_result.get("risk_summary", f"{risk_level} risk level")
+
+    db.save_anomaly_and_risk(
+        equipment_id=equipment_id,
+        anomalies=abnormal_list if isinstance(abnormal_list, list) else abnormal_str,
+        risk_level=risk_level,
+        timestamp=ts,
+        anomaly_count=anomaly_count,
+        abnormal_sensors=abnormal_str or "None",
+        risk_summary=risk_summary,
+    )
+
+    # 3. Generate & Save Maintenance Recommendations
+    maint_result = process_equipment_recommendations(
+        equipment_id=equipment_id,
+        sensor_data=sensor_data,
+        risk_level=risk_level,
+        failure_probability=failure_probability,
+        db_module=None,  # We persist directly below using Member 5's exact signature
+    )
+    primary_issue = maint_result.get("primary_issue", "Normal")
+    action_type = maint_result.get("action_type", "Routine Monitoring")
+    rec_actions = maint_result.get("recommended_actions", [])
+    est_downtime = maint_result.get("estimated_downtime", "Not specified")
+
+    db.save_maintenance_recommendation(
+        equipment_id=equipment_id,
+        issue=primary_issue,
+        recommendation="; ".join(rec_actions) if isinstance(rec_actions, list) else str(rec_actions),
+        risk_level=risk_level,
+        timestamp=ts,
+        primary_issue=primary_issue,
+        action_type=action_type,
+        recommendations=rec_actions,
+        estimated_downtime=est_downtime,
+        status="Pending",
+    )
+
+    # 4. Generate & Save Alert (for Warning or Critical risk only)
+    alert_id = None
+    if risk_level in ("Warning", "Critical"):
+        alert_desc = maint_result.get("summary", f"{risk_level} risk detected ({failure_probability * 100:.1f}%).")
+        alert_id = db.save_alert(
+            equipment_id=equipment_id,
+            risk_level=risk_level,
+            failure_probability=failure_probability,
+            description=alert_desc,
+            status="New",
+            timestamp=ts,
+            condition=primary_issue,
+        )
+
+    return {
+        "equipment_id": equipment_id,
+        "timestamp": ts,
+        "health": {
+            "health_score": health_score,
+            "health_status": health_status,
+        },
+        "anomaly_and_risk": {
+            "risk_level": risk_level,
+            "anomaly_count": anomaly_count,
+            "abnormal_sensors": abnormal_str or "None",
+            "risk_summary": risk_summary,
+        },
+        "maintenance": maint_result,
+        "alert": {
+            "alert_id": alert_id,
+            "risk_level": risk_level,
+            "status": "New" if alert_id else "None",
+        },
+    }
+
+
+if __name__ == "__main__":
+    sample_telemetry = {
+        "air_temperature": 300.5,
+        "process_temperature": 310.2,
+        "rotational_speed": 1410.0,
+        "torque": 67.5,
+        "tool_wear": 212.0,
+        "equipment_type": "L",
+    }
+    output = run_full_post_prediction_analysis(
+        equipment_id="EQ-101",
+        sensor_data=sample_telemetry,
+        predicted_failure=1,
+        failure_probability=0.875,
+    )
+    print("\n[✓] Post-Prediction Analysis & DB Save Succeeded:")
+    for key, val in output.items():
+        print(f"  {key}: {val}")
+

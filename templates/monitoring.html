@@ -2,7 +2,53 @@
 {% block title %}{{ page.title }} | Predictive Maintenance{% endblock %}
 
 {% block content %}
-<section class="section">
+<style>
+    .monitoring-page .monitoring-filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .monitoring-page .monitoring-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 16px;
+    }
+
+    .monitoring-page .monitoring-card {
+        min-width: 0;
+        border-top: 3px solid var(--teal, #087f71);
+        overflow-wrap: anywhere;
+    }
+
+    .monitoring-page .monitoring-card h2 {
+        margin-bottom: 14px;
+    }
+
+    .monitoring-page .monitoring-card p {
+        margin-bottom: 10px;
+    }
+
+    .monitoring-page .monitoring-card form {
+        margin-top: 18px;
+    }
+
+    .monitoring-page .monitoring-card .submit {
+        margin-top: 12px;
+    }
+
+    .monitoring-page [hidden] {
+        display: none !important;
+    }
+
+    .monitoring-page .no-results,
+    .monitoring-page .monitoring-back {
+        margin-top: 20px;
+    }
+</style>
+
+<section class="section monitoring-page">
     <header class="page-heading">
         <div>
             <h1>{{ page.title }}</h1>
@@ -21,6 +67,7 @@
         </div>
     </header>
 
+<<<<<<< HEAD
     {% if summary %}
         <div class="stat-grid">
             {% for label, count in summary.items() %}
@@ -291,3 +338,218 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+=======
+    {% if page_key == 'maintenance' %}
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <p class="{{ 'form-error' if category == 'error' else 'empty-state' }}"
+               role="{{ 'alert' if category == 'error' else 'status' }}">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    {% if page_key == 'risk' %}
+        {% set records = risk_records %}
+        {% set filter_label = 'Risk level' %}
+        {% set filter_options = [
+            ('critical', 'Critical'), ('warning', 'Warning'), ('healthy', 'Healthy'),
+            ('high', 'High'), ('medium', 'Medium'), ('low', 'Low')
+        ] %}
+        {% set empty_message = 'No risk records available.' %}
+    {% elif page_key == 'anomalies' %}
+        {% set records = anomaly_records %}
+        {% set filter_label = 'Anomaly count' %}
+        {% set filter_options = [('none', 'No anomalies'), ('detected', 'Anomalies detected')] %}
+        {% set empty_message = 'No anomaly records available.' %}
+    {% elif page_key == 'maintenance' %}
+        {% set records = maintenance_records %}
+        {% set filter_label = 'Maintenance status' %}
+        {% set filter_options = [
+            ('pending', 'Pending'), ('in progress', 'In Progress'), ('completed', 'Completed')
+        ] %}
+        {% set empty_message = 'No maintenance records available.' %}
+    {% elif page_key == 'alerts' %}
+        {% set records = alerts %}
+        {% set filter_options = [] %}
+        {% set empty_message = 'No alerts available.' %}
+    {% elif page_key == 'history' %}
+        {% set records = predictions %}
+        {% set filter_options = [] %}
+        {% set empty_message = 'No prediction history available.' %}
+    {% else %}
+        {% set records = [] %}
+        {% set filter_options = [] %}
+        {% set empty_message = page.empty or 'No records available.' %}
+    {% endif %}
+
+    {% if records %}
+        <div class="monitoring-filters">
+            <div class="field">
+                <label for="monitoring-equipment">Equipment ID</label>
+                <input id="monitoring-equipment"
+                       type="search"
+                       placeholder="Search equipment ID">
+            </div>
+
+            {% if filter_options %}
+                <div class="field">
+                    <label for="monitoring-filter">{{ filter_label }}</label>
+                    <select id="monitoring-filter">
+                        <option value="">All</option>
+                        {% for value, label in filter_options %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="monitoring-grid" id="monitoring-records">
+            {% for item in records %}
+                {% set filter_value = '' %}
+
+                {% if page_key == 'risk' %}
+                    {% set risk = item.risk_level | default('', true) | string | lower %}
+                    {% set filter_value = risk %}
+                {% elif page_key == 'anomalies' %}
+                    {% set count = item.anomaly_count | default(0, true) | int %}
+                    {% set filter_value = 'detected' if count > 0 else 'none' %}
+                {% elif page_key == 'maintenance' %}
+                    {% set current_status = item.status or 'Pending' %}
+                    {% set filter_value = current_status | lower %}
+                {% endif %}
+
+                <article class="card monitoring-card"
+                         data-equipment="{{ item.equipment_id | default('', true) | lower }}"
+                         data-filter="{{ filter_value }}">
+                    <h2>{{ item.equipment_id }}</h2>
+
+                    {% if page_key == 'risk' %}
+                        <p>
+                            <strong>Risk level:</strong>
+                            {% if risk and risk != 'nan' %}
+                                {% if risk in ['critical', 'high'] %}
+                                    <span class="status status-danger">{{ item.risk_level }}</span>
+                                {% elif risk in ['healthy', 'low'] %}
+                                    <span class="status status-success">{{ item.risk_level }}</span>
+                                {% else %}
+                                    <span class="status">{{ item.risk_level }}</span>
+                                {% endif %}
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </p>
+
+                        {% if item.risk_summary and item.risk_summary|string|lower != 'nan' %}
+                            <p>{{ item.risk_summary }}</p>
+                        {% endif %}
+
+                    {% elif page_key == 'anomalies' %}
+                        <p><strong>Anomaly count:</strong> {{ count }}</p>
+
+                        {% if count > 0 %}
+                            <p>
+                                <strong>Abnormal sensors:</strong>
+                                {% if item.abnormal_sensors and item.abnormal_sensors|string|lower != 'nan' %}
+                                    {{ item.abnormal_sensors }}
+                                {% else %}
+                                    Sensor details unavailable
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <p><span class="status status-success">No anomalies detected</span></p>
+                        {% endif %}
+
+                    {% elif page_key == 'maintenance' %}
+                        <p><strong>Issue:</strong> {{ item.issue or 'Not available' }}</p>
+                        <p><strong>Recommendation:</strong> {{ item.recommendation or 'Not available' }}</p>
+
+                        {% if item.completed_at %}
+                            <p><strong>Completed:</strong> {{ item.completed_at }}</p>
+                        {% endif %}
+
+                        <form method="post"
+                              action="{{ url_for('update_maintenance', maintenance_id=item.id) }}">
+                            {% if csrf_token is defined %}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            <div class="field">
+                                <label for="maintenance-status-{{ item.id }}">Status</label>
+                                <select id="maintenance-status-{{ item.id }}" name="status" required>
+                                    {% for status in ['Pending', 'In Progress', 'Completed'] %}
+                                        <option value="{{ status }}"
+                                            {% if current_status == status %}selected{% endif %}>
+                                            {{ status }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button class="button submit" type="submit">Save status</button>
+                        </form>
+
+                    {% elif page_key == 'alerts' %}
+                        <p><strong>Message:</strong> {{ item.description or 'No message available' }}</p>
+                        <p><strong>Status:</strong> {{ item.status or 'Not available' }}</p>
+
+                    {% elif page_key == 'history' %}
+                        <p><strong>Prediction:</strong> {{ item.prediction_label or 'Not available' }}</p>
+                        <p>
+                            <strong>Failure probability:</strong>
+                            {% if item.failure_probability is defined and item.failure_probability is not none %}
+                                {{ "%.2f"|format(item.failure_probability * 100) }}%
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </p>
+                    {% endif %}
+
+                    {% if item.ts %}
+                        <p class="muted"><strong>Recorded:</strong> {{ item.ts }}</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+
+        <p class="empty-state no-results" id="monitoring-no-results" hidden>
+            No records match your filters.
+        </p>
+    {% else %}
+        <p class="empty-state">{{ empty_message }}</p>
+    {% endif %}
+
+    <p class="monitoring-back">
+        <a class="text-link" href="{{ url_for('dashboard') }}">← Back to Prediction</a>
+    </p>
+</section>
+
+<script>
+(() => {
+    const search = document.getElementById("monitoring-equipment");
+    const filter = document.getElementById("monitoring-filter");
+    const noResults = document.getElementById("monitoring-no-results");
+    const cards = document.querySelectorAll("#monitoring-records .monitoring-card");
+
+    if (!search) return;
+
+    function applyFilters() {
+        const searchText = search.value.trim().toLowerCase();
+        const selectedValue = filter ? filter.value : "";
+        let hasMatch = false;
+
+        for (const card of cards) {
+            const matchesEquipment = card.dataset.equipment.includes(searchText);
+            const matchesFilter = !selectedValue || card.dataset.filter === selectedValue;
+            card.hidden = !(matchesEquipment && matchesFilter);
+
+            if (!card.hidden) hasMatch = true;
+        }
+
+        noResults.hidden = hasMatch;
+    }
+
+    search.addEventListener("input", applyFilters);
+    if (filter) filter.addEventListener("change", applyFilters);
+})();
+</script>
+{% endblock %}
+>>>>>>> 2cceed1 (M4)

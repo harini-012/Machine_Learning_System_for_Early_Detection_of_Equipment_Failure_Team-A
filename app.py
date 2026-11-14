@@ -1,11 +1,19 @@
 import math
+
+import os
+import xgboost as xgb
+
+from flask import Flask, abort, render_template, request, redirect, url_for,flash
 from datetime import datetime, timezone
-from flask import Flask, abort, render_template, request, redirect, url_for
+from src.prediction_service import create_prediction_service
+from src.analysis_service import run_full_post_prediction_analysis
+from src.report_routes import report_bp
 
 from src.prediction_service import create_prediction_service
 from src.analysis_service import run_post_prediction_analysis, get_monitoring_data
 from src.report_routes import report_bp
 from src.database import (
+    init_database,
     get_all_equipment,
     get_equipment_by_id,
     upsert_equipment,
@@ -14,10 +22,30 @@ from src.database import (
     insert_sensor_reading,
     save_prediction,
     retrieve_equipment_history,
+    get_alerts,
+    update_maintenance_status,
+
 )
 
 app = Flask(__name__)
 app.register_blueprint(report_bp)
+
+# Optional trend analysis integration from Milestone 3
+try:
+    from src.trend_analysis import analyze_all_equipment_trends
+except ImportError:
+    analyze_all_equipment_trends = None
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "predictive-maintenance-team-a-secret")
+
+# Ensure database tables exist on startup
+init_database()
+
+# Register Member 4's Alert Status & CSV Report Blueprint
+app.register_blueprint(report_bp)
+
+
 predict_reading = create_prediction_service()
 
 SENSOR_FIELDS = (
@@ -61,6 +89,27 @@ MONITORING_PAGES = {
     },
 }
 
+def _collect_fleet_monitoring_data():
+    fleet_data = {
+        "risk_records": [],
+        "anomaly_records": [],
+        "maintenance_records": [],
+        "predictions": [],
+        "alerts": [],
+    }
+
+    for equipment in get_all_equipment():
+        equipment_id = equipment["equipment_id"]
+        history = retrieve_equipment_history(equipment_id)
+
+        fleet_data["risk_records"].extend(history["anomalies"])
+        fleet_data["anomaly_records"].extend(history["anomalies"])
+        fleet_data["maintenance_records"].extend(history["maintenance"])
+        fleet_data["predictions"].extend(history["predictions"])
+        fleet_data["alerts"].extend(history["alerts"])
+
+    return fleet_data
+
 
 @app.context_processor
 def shared_template_data():
@@ -72,6 +121,9 @@ def parse_readings(form, allow_direct_type: bool = False):
 
     if not equipment_id or len(equipment_id) > 100:
         raise ValueError("Enter an equipment ID with 1–100 characters.")
+
+    # Fetch registered equipment from the database.
+
 
     equipment = get_equipment_by_id(equipment_id)
 
@@ -106,14 +158,20 @@ def parse_readings(form, allow_direct_type: bool = False):
     return readings
 
 
-def render_prediction(template_name, allow_direct_type: bool = False):
+
+
+def render_prediction(template_name):
+    fleet_data = _collect_fleet_monitoring_data()
+
     context = {
         "sensor_fields": [field[:3] for field in SENSOR_FIELDS],
         "dashboard_fields": SENSOR_FIELDS,
         "equipment": get_all_equipment(),
         "values": {},
         "result": None,
+        "analysis": None,
         "error": None,
+        **fleet_data,
     }
 
     if request.method == "GET":
@@ -130,6 +188,11 @@ def render_prediction(template_name, allow_direct_type: bool = False):
         observation_time = datetime.now(timezone.utc).isoformat(timespec="seconds")
         equipment = get_equipment_by_id(readings["equipment_id"]) or {}
 
+        # Use the same timestamp for all database records in this submission.
+        observation_time = datetime.now(timezone.utc).isoformat(
+            timespec="seconds"
+        )
+
         # 2. Save the five sensor readings as a new observation (Member 3/5)
         insert_sensor_reading(
             equipment_id=readings["equipment_id"],
@@ -144,13 +207,34 @@ def render_prediction(template_name, allow_direct_type: bool = False):
         )
 
         # 3. Save the corresponding model prediction (Member 1/5)
+
+        # Run Member 4's post-prediction analysis (health score, anomalies, risk, maintenance, alerts)
+        analysis = run_full_post_prediction_analysis(
+            equipment_id=readings["equipment_id"],
+            sensor_data={
+                "air_temperature": readings["Air temperature [K]"],
+                "process_temperature": readings["Process temperature [K]"],
+                "rotational_speed": readings["Rotational speed [rpm]"],
+                "torque": readings["Torque [Nm]"],
+                "tool_wear": readings["Tool wear [min]"],
+                "equipment_type": readings["Type"],
+            },
+            predicted_failure=result["predicted_failure"],
+            failure_probability=result["failure_probability"],
+            timestamp=observation_time,
+        )
+
+        # Save the corresponding model prediction along with computed health score.
         save_prediction(
             equipment_id=result["equipment_id"],
             failure_pred=result["predicted_failure"],
             failure_probability=result["failure_probability"],
             timestamp=observation_time,
             prediction_label=result["prediction_label"],
+            health_score=analysis["health"]["health_score"],
+            health_status=analysis["health"]["health_status"],
         )
+
 
         # 4. Run post-prediction analysis: Health score, anomalies, risk, maintenance & alerts (Member 2/3/4/5)
         analysis = run_post_prediction_analysis(
@@ -162,6 +246,12 @@ def render_prediction(template_name, allow_direct_type: bool = False):
         result.update(analysis)
         context["result"] = result
         context["equipment"] = get_all_equipment()
+        # Refresh fleet data so newly generated alerts/maintenance appear immediately
+        context.update(_collect_fleet_monitoring_data())
+        result["analysis"] = analysis
+        context["result"] = result
+        context["analysis"] = analysis
+
 
     except ValueError as exc:
         context["error"] = str(exc)
@@ -192,19 +282,24 @@ def prediction_page():
     return render_prediction("prediction_test.html", allow_direct_type=True)
 
 
-@app.get("/monitoring/<page>")
-def monitoring_page(page):
-    details = MONITORING_PAGES.get(page)
-    if details is None:
-        abort(404)
+@app.route("/monitoring/<page>")
+def monitoring(page):
+    fleet_data = _collect_fleet_monitoring_data()
+
 
     monitoring_data = get_monitoring_data(page, limit=100)
+    
+
     return render_template(
         "monitoring.html",
-        page=details,
+        page=MONITORING_PAGES[page],
         page_key=page,
-        summary=monitoring_data["summary"],
-        rows=monitoring_data["rows"],
+        risk_records=fleet_data["risk_records"],
+        anomaly_records=fleet_data["anomaly_records"],
+        maintenance_records=fleet_data["maintenance_records"],
+        alerts=fleet_data["alerts"],
+        predictions=fleet_data["predictions"]
+
     )
 
 
@@ -312,6 +407,7 @@ def edit_equipment(equipment_id):
     return render_template("equipment_form.html", mode="Edit", item=item, error=None)
 
 
+
 @app.get("/equipment/<equipment_id>")
 def equipment_detail(equipment_id):
     history = retrieve_equipment_history(equipment_id)
@@ -347,7 +443,26 @@ def remove_equipment(equipment_id):
     except Exception:
         app.logger.exception("Failed to delete equipment")
         abort(500)
+@app.post("/maintenance/update/<int:maintenance_id>")
+def update_maintenance(maintenance_id):
+    status = request.form.get("status", "")
+
+    try:
+        updated = update_maintenance_status(maintenance_id, status)
+    except ValueError as exc:
+        flash(str(exc), "error")
+    except Exception:
+        app.logger.exception("Maintenance status update failed")
+        flash("Unable to update maintenance status.", "error")
+    else:
+        if updated:
+            flash("Maintenance status updated.", "success")
+        else:
+            flash("Maintenance record could not be found.", "error")
+
+    return redirect(url_for("monitoring", page="maintenance"), code=303)
 
 
 if __name__ == "__main__":
-    app.run()
+
+    app.run(debug=True)

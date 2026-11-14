@@ -997,3 +997,29 @@ def get_table_counts() -> Dict[str, int]:
             row = cur.fetchone()
             counts[table] = int(row["cnt"] if isinstance(row, dict) or hasattr(row, "keys") else row[0])
     return counts
+def update_maintenance_status(maintenance_id, status):
+    allowed_statuses = {"Pending", "In Progress", "Completed"}
+    if status not in allowed_statuses:
+        raise ValueError("Invalid maintenance status.")
+
+    with managed_connection() as (conn, backend):
+        placeholder = "%s" if backend == "postgresql" else "?"
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(
+                f"""
+                UPDATE maintenance_records
+                SET status = {placeholder},
+                    completed_at = CASE
+                        WHEN {placeholder} = 'Completed'
+                            THEN COALESCE(completed_at, CURRENT_TIMESTAMP)
+                        ELSE NULL
+                    END
+                WHERE id = {placeholder}
+                """,
+                (status, status, maintenance_id),
+            )
+            return cursor.rowcount == 1
+        finally:
+            cursor.close()

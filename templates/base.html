@@ -44,6 +44,16 @@
                     </a>
                 {% endfor %}
             </nav>
+
+    {% for key, item in monitoring_pages.items() if key != 'history' %}
+        <a href="{{ url_for('monitoring', page=key) }}"
+           {% if page_key == key %}aria-current="page"{% endif %}>
+            {{ item.nav }}
+        </a>
+    {% endfor %}
+</nav>
+            
+>>>>>>> 2cceed1 (M4)
         </div>
     </header>
 
