@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Prediction | Predictive Maintenance{% endblock %}
+{% block title %}Prediction Studio | Predictive Maintenance{% endblock %}
 
 {% block content %}
 {% set values = values | default({}, true) %}
@@ -7,27 +7,31 @@
 <section class="section">
     <header class="page-heading">
         <div>
-            <h1>Equipment Prediction</h1>
-            <p class="muted">Enter sensor readings in Kelvin (°C + 273.15).</p>
+            <h1>Equipment Prediction Studio</h1>
+            <p class="muted">Select a machine or click a demo preset below to run live XGBoost failure diagnostics.</p>
         </div>
+        <a class="button-outline" href="{{ url_for('add_equipment') }}">+ Register Machine</a>
     </header>
 
     <div class="prediction-grid">
         <form class="card" method="post" action="{{ url_for('dashboard') }}">
-            <h2>Sensor Readings</h2>
+            <h2>Sensor Telemetry Input</h2>
 
             {% if error %}
                 <p class="form-error" role="alert">{{ error }}</p>
             {% endif %}
 
+            <!-- React Interactive Preset & Live Celsius Converter Mount -->
+            <div id="react-sensor-presets"></div>
+
             <div class="field">
                 <label for="equipment_id">Registered Equipment</label>
                 <select id="equipment_id" name="equipment_id" required>
-                    <option value="">Select equipment</option>
+                    <option value="">Choose registered equipment...</option>
                     {% for item in equipment %}
                         <option value="{{ item.equipment_id }}"
                             {% if values.get('equipment_id') == item.equipment_id %}selected{% endif %}>
-                            {{ item.equipment_id }} (Type {{ item.equipment_type }})
+                            {{ item.equipment_id }} · Type {{ item.equipment_type }}{% if item.product_id %} ({{ item.product_id }}){% endif %}
                         </option>
                     {% endfor %}
                 </select>
@@ -43,7 +47,7 @@
                                    type="number"
                                    min="{{ minimum }}"
                                    step="any"
-                                   placeholder="{{ example }}"
+                                   placeholder="e.g. {{ example }}"
                                    value="{{ values.get(name, '') }}"
                                    required>
                         </div>
@@ -51,28 +55,38 @@
                 </div>
 
                 <button class="button submit" type="submit" style="width: 100%;">
-                    Predict Failure
+                    Run Diagnostic Prediction →
                 </button>
             {% else %}
                 <p class="empty-state">
-                    No equipment registered. <a href="{{ url_for('add_equipment') }}">Add equipment</a>
+                    No equipment registered yet. <a href="{{ url_for('add_equipment') }}">Add equipment</a>
                 </p>
             {% endif %}
         </form>
 
         <section class="card">
-            <h2>Prediction Result</h2>
+            <h2>Diagnostic Output</h2>
 
             {% if result %}
                 {% set probability = result.failure_probability * 100 %}
                 {% set failure = result.predicted_failure == 1 %}
 
-                <span class="status {{ 'status-danger' if failure else 'status-success' }}">
-                    {{ result.prediction_label }}
-                </span>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <span class="status {{ 'status-danger' if failure else 'status-success' }}">
+                        {{ result.prediction_label }}
+                    </span>
+                    <span class="badge {{ 'badge-danger' if result.risk_level == 'Critical' else ('badge-warning' if result.risk_level == 'Warning' else 'badge-success') }}">
+                        {{ result.risk_level }} Risk
+                    </span>
+                </div>
 
-                <p class="probability">{{ "%.2f"|format(probability) }}%</p>
-                <progress value="{{ probability }}" max="100"></progress>
+                <!-- React Animated Circular SVG Gauges Mount -->
+                <div id="react-gauge-mount"
+                     data-probability="{{ '%.2f'|format(probability) }}"
+                     data-health="{{ '%.2f'|format(result.health_score or 0) }}"
+                     data-failure="{{ result.predicted_failure }}">
+                    <p class="probability">{{ "%.2f"|format(probability) }}%</p>
+                </div>
 
                 <dl class="result-details">
                     <div>
@@ -80,30 +94,35 @@
                         <dd><a href="{{ url_for('equipment_detail', equipment_id=result.equipment_id) }}">{{ result.equipment_id }}</a></dd>
                     </div>
                     <div>
-                        <dt>Health Score</dt>
-                        <dd>{{ "%.2f"|format(result.health_score) }} / 100 ({{ result.health_status }})</dd>
+                        <dt>Health Status</dt>
+                        <dd>
+                            <span class="badge {{ 'badge-success' if result.health_status == 'Good' else ('badge-warning' if result.health_status == 'Moderate' else 'badge-danger') }}">
+                                {{ result.health_status }} ({{ "%.1f"|format(result.health_score) }} / 100)
+                            </span>
+                        </dd>
                     </div>
                     <div>
-                        <dt>Risk Level</dt>
-                        <dd>{{ result.risk_level }}</dd>
+                        <dt>Abnormal Sensors</dt>
+                        <dd>{{ result.abnormal_sensors }}</dd>
                     </div>
                     <div>
                         <dt>Primary Issue</dt>
                         <dd>{{ result.primary_issue }}</dd>
                     </div>
                     <div>
-                        <dt>Action</dt>
-                        <dd>{{ result.action_type }}</dd>
+                        <dt>Recommended Action</dt>
+                        <dd>{{ result.action_type }} ({{ result.estimated_downtime }})</dd>
                     </div>
                 </dl>
 
-                <a class="button-outline" href="{{ url_for('equipment_detail', equipment_id=result.equipment_id) }}">
-                    View Equipment History
+                <a class="button-outline" style="width: 100%;" href="{{ url_for('equipment_detail', equipment_id=result.equipment_id) }}">
+                    View Complete Equipment History →
                 </a>
             {% else %}
-                <p class="empty-state">
-                    Submit sensor readings to see the prediction and health analysis.
-                </p>
+                <div class="empty-state">
+                    <p style="font-weight: 600; color: #334155; margin-bottom: 4px;">Ready for Telemetry</p>
+                    <p style="margin: 0; font-size: 0.82rem;">Click a Quick Demo Preset on the left or enter custom sensor values to view animated health gauges and failure diagnostics.</p>
+                </div>
             {% endif %}
         </section>
     </div>

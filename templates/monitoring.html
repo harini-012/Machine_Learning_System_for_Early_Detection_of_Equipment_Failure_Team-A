@@ -9,9 +9,9 @@
             <p class="muted">{{ page.description }}</p>
         </div>
         <div class="toolbar-actions">
-            <a class="button-outline" href="{{ url_for('reports.download_predicted_failures') }}">Failures CSV</a>
-            <a class="button-outline" href="{{ url_for('reports.download_maintenance_activities') }}">Maintenance CSV</a>
-            <a class="button-outline" href="{{ url_for('reports.download_model_performance') }}">Metrics CSV</a>
+            <a class="button-outline" href="{{ url_for('reports.download_predicted_failures') }}">↓ Failures CSV</a>
+            <a class="button-outline" href="{{ url_for('reports.download_maintenance_activities') }}">↓ Maintenance CSV</a>
+            <a class="button-outline" href="{{ url_for('reports.download_model_performance') }}">↓ Metrics CSV</a>
         </div>
     </header>
 
@@ -22,28 +22,54 @@
         </p>
     {% endfor %}
 
+    {% if summary %}
+        <div class="stat-grid">
+            {% for label, count in summary.items() %}
+                <div class="stat-card">
+                    <span class="stat-label">{{ label }}</span>
+                    <p class="stat-value">{{ count }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="card">
         {% if rows %}
+            {% if page_key == 'alerts' %}
+                {% set pills_json = '[{"label":"All Alerts","value":"ALL"},{"label":"New","value":"New"},{"label":"Acknowledged","value":"Acknowledged"},{"label":"Resolved","value":"Resolved"}]' %}
+            {% elif page_key == 'history' %}
+                {% set pills_json = '[{"label":"All Trends","value":"ALL"},{"label":"Deteriorating","value":"Deteriorating"},{"label":"Stable","value":"Stable"},{"label":"Improving","value":"Improving"}]' %}
+            {% else %}
+                {% set pills_json = '[{"label":"All Records","value":"ALL"},{"label":"Critical","value":"Critical"},{"label":"Warning","value":"Warning"},{"label":"Healthy","value":"Healthy"}]' %}
+            {% endif %}
+
+            <!-- React Interactive Filter Pills & Search Bar -->
+            <div id="react-table-controls"
+                 data-table="monitoringTable"
+                 data-pills='{{ pills_json }}'>
+            </div>
+
             <div class="table-wrapper">
                 {% if page_key == 'risk' %}
-                    <table>
+                    <table id="monitoringTable">
                         <thead>
                             <tr>
                                 <th>Equipment ID</th>
                                 <th>Risk Level</th>
                                 <th>Health Score</th>
-                                <th>Status</th>
+                                <th>Health Status</th>
                                 <th>Failure Prob</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for row in rows %}
                                 {% set risk = row.risk_level or 'Healthy' %}
+                                {% set hstatus = row.health_status or 'Good' %}
                                 <tr>
                                     <th><a href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">{{ row.equipment_id }}</a></th>
                                     <td><span class="badge {{ 'badge-danger' if risk == 'Critical' else ('badge-warning' if risk == 'Warning' else 'badge-success') }}">{{ risk }}</span></td>
-                                    <td>{{ "%.2f"|format(row.health_score or 0) }} / 100</td>
-                                    <td>{{ row.health_status or 'Good' }}</td>
+                                    <td><strong>{{ "%.2f"|format(row.health_score or 0) }}</strong> / 100</td>
+                                    <td><span class="badge {{ 'badge-success' if hstatus == 'Good' else ('badge-warning' if hstatus == 'Moderate' else 'badge-danger') }}">{{ hstatus }}</span></td>
                                     <td>{{ "%.2f"|format((row.failure_probability or 0) * 100) }}%</td>
                                 </tr>
                             {% endfor %}
@@ -51,7 +77,7 @@
                     </table>
 
                 {% elif page_key == 'anomalies' %}
-                    <table>
+                    <table id="monitoringTable">
                         <thead>
                             <tr>
                                 <th>Equipment ID</th>
@@ -66,7 +92,7 @@
                                 <tr>
                                     <th><a href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">{{ row.equipment_id }}</a></th>
                                     <td><span class="badge {{ 'badge-danger' if risk == 'Critical' else ('badge-warning' if risk == 'Warning' else 'badge-success') }}">{{ risk }}</span></td>
-                                    <td>{{ row.anomaly_count }}</td>
+                                    <td><span class="badge">{{ row.anomaly_count }}</span></td>
                                     <td>{{ row.abnormal_sensors }}</td>
                                 </tr>
                             {% endfor %}
@@ -74,11 +100,11 @@
                     </table>
 
                 {% elif page_key == 'alerts' %}
-                    <table>
+                    <table id="monitoringTable">
                         <thead>
                             <tr>
                                 <th>Equipment ID</th>
-                                <th>Risk Level</th>
+                                <th>Severity</th>
                                 <th>Condition</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -87,11 +113,12 @@
                         <tbody>
                             {% for row in rows %}
                                 {% set risk = row.risk_level or 'Warning' %}
+                                {% set st = row.status or 'New' %}
                                 <tr>
                                     <th><a href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">{{ row.equipment_id }}</a></th>
                                     <td><span class="badge {{ 'badge-danger' if risk == 'Critical' else 'badge-warning' }}">{{ risk }}</span></td>
                                     <td>{{ row.condition }}</td>
-                                    <td>{{ row.status }}</td>
+                                    <td><span class="badge {{ 'badge-danger' if st == 'New' else ('badge-warning' if st == 'Acknowledged' else 'badge-success') }}">{{ st }}</span></td>
                                     <td>
                                         {% if row.status != 'Resolved' %}
                                             <div class="equipment-actions">
@@ -103,7 +130,7 @@
                                                 {% endif %}
                                                 <form method="post" action="{{ url_for('reports.change_alert_status', alert_id=row.alert_id) }}">
                                                     <input type="hidden" name="status" value="Resolved">
-                                                    <button class="equipment-action" type="submit">Resolve</button>
+                                                    <button class="equipment-action equipment-action-history" type="submit">Resolve</button>
                                                 </form>
                                             </div>
                                         {% else %}
@@ -116,7 +143,7 @@
                     </table>
 
                 {% elif page_key == 'maintenance' %}
-                    <table>
+                    <table id="monitoringTable">
                         <thead>
                             <tr>
                                 <th>Equipment ID</th>
@@ -133,17 +160,17 @@
                                 <tr>
                                     <th><a href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">{{ row.equipment_id }}</a></th>
                                     <td><span class="badge {{ 'badge-danger' if risk == 'Critical' else ('badge-warning' if risk == 'Warning' else 'badge-success') }}">{{ risk }}</span></td>
-                                    <td>{{ row.issue }}</td>
+                                    <td><strong>{{ row.issue }}</strong></td>
                                     <td class="muted">{{ row.recommendation }}</td>
                                     <td>
                                         {% if row.id %}
                                             <form method="post" action="{{ url_for('update_maintenance', maintenance_id=row.id) }}" class="equipment-actions">
-                                                <select name="status" style="width: auto; padding: 4px 8px;">
+                                                <select name="status" style="width: auto; min-height: 32px; padding: 4px 8px;">
                                                     {% for status in ['Pending', 'In Progress', 'Completed'] %}
                                                         <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>{{ status }}</option>
                                                     {% endfor %}
                                                 </select>
-                                                <button class="equipment-action" type="submit">Save</button>
+                                                <button class="equipment-action equipment-action-history" type="submit">Save</button>
                                             </form>
                                         {% else %}
                                             {{ current_status }}
@@ -155,11 +182,11 @@
                     </table>
 
                 {% elif page_key == 'history' %}
-                    <table>
+                    <table id="monitoringTable">
                         <thead>
                             <tr>
                                 <th>Equipment ID</th>
-                                <th>Overall Trend</th>
+                                <th>Overall Trajectory</th>
                                 <th>Health Score Trend</th>
                                 <th>Latest Health Score</th>
                                 <th>Latest Failure Prob</th>
@@ -167,11 +194,12 @@
                         </thead>
                         <tbody>
                             {% for row in rows %}
+                                {% set tr = row.overall_trend or 'Stable' %}
                                 <tr>
                                     <th><a href="{{ url_for('equipment_detail', equipment_id=row.equipment_id) }}">{{ row.equipment_id }}</a></th>
-                                    <td>{{ row.overall_trend }}</td>
+                                    <td><span class="badge {{ 'badge-danger' if tr == 'Deteriorating' else ('badge-success' if tr == 'Improving' else '') }}">{{ tr }}</span></td>
                                     <td>{{ row.health_score_trend }}</td>
-                                    <td>{{ "%.2f"|format(row.latest_health_score or 0) }} / 100</td>
+                                    <td><strong>{{ "%.2f"|format(row.latest_health_score or 0) }}</strong> / 100</td>
                                     <td>{{ "%.2f"|format((row.latest_failure_probability or 0) * 100) }}%</td>
                                 </tr>
                             {% endfor %}

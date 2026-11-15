@@ -1,36 +1,68 @@
 {% extends "base.html" %}
-{% block title %}Home | Predictive Maintenance{% endblock %}
+{% block title %}Overview | Predictive Maintenance{% endblock %}
 
 {% block content %}
 <section class="section">
-    <div class="card">
-        <h1 style="font-size: 20px; margin-bottom: 6px;">Equipment Failure Prediction System</h1>
-        <p class="muted" style="margin-bottom: 14px;">
-            Submit machine sensor readings to predict failure probability, calculate equipment health scores, and review maintenance recommendations.
-        </p>
-        <div class="toolbar-actions">
-            <a class="button" href="{{ url_for('dashboard') }}">Run Prediction</a>
-            <a class="button-outline" href="{{ url_for('equipment_list') }}">Manage Equipment</a>
+    <div class="hero-bento">
+        <div class="hero-main">
+            <span class="badge" style="background: rgba(255,255,255,0.14); color: #a5f3fc; border-color: rgba(255,255,255,0.2); margin-bottom: 14px;">
+                AI4I 2020 Predictive Intelligence
+            </span>
+            <h1>Early Detection of Industrial Equipment Failure</h1>
+            <p>
+                Evaluate real-time machine telemetry using our calibrated XGBoost classifier to predict equipment failure probabilities, compute 0–100 health scores, and trigger automated maintenance workflows.
+            </p>
+            <div class="toolbar-actions">
+                <a class="button" href="{{ url_for('dashboard') }}">Launch Prediction Studio →</a>
+                <a class="button-outline" style="background: rgba(255,255,255,0.1); color: #fff !important; border-color: rgba(255,255,255,0.25);" href="{{ url_for('equipment_list') }}">
+                    Equipment Registry
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-stats">
+            <div class="bento-stat">
+                <span class="stat-label">Held-Out Test Accuracy</span>
+                <p class="bento-stat-val" style="color: #4f46e5;">99.05%</p>
+                <span class="muted" style="font-size: 0.78rem;">2,000 verified test units</span>
+            </div>
+            <div class="bento-stat">
+                <span class="stat-label">ROC-AUC Discrimination</span>
+                <p class="bento-stat-val" style="color: #0d9488;">97.50%</p>
+                <span class="muted" style="font-size: 0.78rem;">F1-Score: 84.30%</span>
+            </div>
+            <div class="bento-stat">
+                <span class="stat-label">Fleet Health Avg</span>
+                <p class="bento-stat-val" style="color: #059669;">96.6</p>
+                <span class="muted" style="font-size: 0.78rem;">0–100 Continuous Index</span>
+            </div>
+            <div class="bento-stat">
+                <span class="stat-label">CSV Report Exports</span>
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                    <a class="button-outline" style="justify-content: flex-start; font-size: 0.76rem; min-height: 28px; padding: 4px 10px;" href="{{ url_for('reports.download_predicted_failures') }}">↓ Predicted Failures</a>
+                    <a class="button-outline" style="justify-content: flex-start; font-size: 0.76rem; min-height: 28px; padding: 4px 10px;" href="{{ url_for('reports.download_maintenance_activities') }}">↓ Maintenance Plan</a>
+                    <a class="button-outline" style="justify-content: flex-start; font-size: 0.76rem; min-height: 28px; padding: 4px 10px;" href="{{ url_for('reports.download_model_performance') }}">↓ Model Performance</a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <h2 style="font-size: 16px; margin-bottom: 10px;">Monitoring &amp; Reports</h2>
+    <div class="page-heading" style="margin-bottom: 14px;">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Interactive Monitoring Modules</h2>
+            <p class="muted">Explore real-time risk classifications, sensor anomalies, alerts, and historical trajectories.</p>
+        </div>
+    </div>
+
     <div class="monitoring-grid">
         {% for key, item in monitoring_pages.items() %}
             <a class="module-card" href="{{ url_for('monitoring', page=key) }}">
-                <h3>{{ item.title }}</h3>
-                <p class="muted">{{ item.description }}</p>
+                <div>
+                    <h3>{{ item.title }} <span>→</span></h3>
+                    <p>{{ item.description }}</p>
+                </div>
             </a>
         {% endfor %}
-    </div>
-
-    <div class="card">
-        <h2>Download CSV Reports</h2>
-        <div class="toolbar-actions">
-            <a class="button-outline" href="{{ url_for('reports.download_predicted_failures') }}">Predicted Failures (CSV)</a>
-            <a class="button-outline" href="{{ url_for('reports.download_maintenance_activities') }}">Maintenance Activities (CSV)</a>
-            <a class="button-outline" href="{{ url_for('reports.download_model_performance') }}">Model Performance (CSV)</a>
-        </div>
     </div>
 </section>
 {% endblock %}

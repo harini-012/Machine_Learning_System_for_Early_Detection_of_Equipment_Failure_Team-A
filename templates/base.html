@@ -4,19 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Predictive Maintenance{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='4.0') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='5.0') }}">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
 <body>
     <header class="topbar">
         <div class="shell topbar-inner">
-            <a class="brand" href="{{ url_for('home') }}">
-                Predictive Maintenance
-            </a>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a class="brand" href="{{ url_for('home') }}">
+                    <span class="brand-mark" aria-hidden="true">PM</span>
+                    Predictive Maintenance
+                </a>
+                <span class="live-pill">
+                    <span class="live-dot"></span>
+                    XGBoost Active
+                </span>
+            </div>
 
             <nav aria-label="Main navigation">
                 <a href="{{ url_for('home') }}"
                    {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
-                    Home
+                    Overview
                 </a>
 
                 <a href="{{ url_for('dashboard') }}"
@@ -46,7 +58,10 @@
     </main>
 
     <footer class="shell footer">
-        Equipment Failure Prediction System
+        <span>Equipment Failure Prediction &amp; Health Intelligence Platform</span>
+        <span>React 18 UI · XGBoost 99.05% Accuracy</span>
     </footer>
+
+    <script src="{{ url_for('static', filename='js/react_app.js', v='5.0') }}"></script>
 </body>
 </html>
