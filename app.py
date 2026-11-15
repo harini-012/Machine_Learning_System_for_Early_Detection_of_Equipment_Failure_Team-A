@@ -219,7 +219,7 @@ def monitoring(page):
     if details is None:
         abort(404)
 
-    monitoring_data = get_monitoring_data(page, limit=100)
+    monitoring_data = get_monitoring_data(page, limit=25)
     rows = monitoring_data["rows"]
     return render_template(
         "monitoring.html",

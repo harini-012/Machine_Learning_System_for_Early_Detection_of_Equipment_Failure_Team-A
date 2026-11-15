@@ -1,74 +1,41 @@
 {% extends "base.html" %}
-{% block title %}{{ equipment.equipment_id }} History | Predictive Maintenance{% endblock %}
+{% block title %}{{ equipment.equipment_id }} | Predictive Maintenance{% endblock %}
 
 {% block content %}
 <section class="section">
     <header class="page-heading">
         <div>
-            <h1>Equipment Profile: {{ equipment.equipment_id }}</h1>
-            <p class="muted">{{ equipment.description or "Historical sensor observations, ML failure predictions, and health trends." }}</p>
+            <h1>Equipment: {{ equipment.equipment_id }}</h1>
+            <p class="muted">Type {{ equipment.equipment_type }} · Product ID: {{ equipment.product_id or "N/A" }} · {{ equipment.description or "" }}</p>
         </div>
-        <div class="toolbar-actions">
-            <a class="button-outline" href="{{ url_for('edit_equipment', equipment_id=equipment.equipment_id) }}">Edit Equipment</a>
-            <a class="button" href="{{ url_for('dashboard') }}">New Prediction →</a>
-        </div>
+        <a class="button-outline" href="{{ url_for('equipment_list') }}">← Back to Equipment</a>
     </header>
 
-    <div class="stat-grid">
-        <div class="stat-card">
-            <span class="stat-label">Equipment ID</span>
-            <p class="stat-value" style="font-size: 1.35rem;">{{ equipment.equipment_id }}</p>
-            <p class="stat-meta">Product ID: {{ equipment.product_id or "N/A" }}</p>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">Quality Variant</span>
-            <p class="stat-value" style="font-size: 1.35rem;">Type {{ equipment.equipment_type }}</p>
-            <p class="stat-meta">AI4I 2020 Specification</p>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">Sensor Observations</span>
-            <p class="stat-value" style="font-size: 1.35rem;">{{ sensor_readings|length }}</p>
-            <p class="stat-meta">Recorded telemetry entries</p>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">ML Predictions</span>
-            <p class="stat-value" style="font-size: 1.35rem;">{{ predictions|length }}</p>
-            <p class="stat-meta">Active alerts: {{ alerts|length }}</p>
-        </div>
-    </div>
-
-    <div class="detail-grid">
-        <section class="card">
-            <h2>Sensor Temperature Trends (K)</h2>
+    <div class="detail-grid" style="margin-bottom: 16px;">
+        <section class="card" style="margin-bottom: 0;">
+            <h2>Temperature Trends (K)</h2>
             <div class="chart-box">
                 <canvas id="temperatureChart"></canvas>
             </div>
         </section>
 
-        <section class="card">
-            <h2>Rotational Speed Trend (rpm)</h2>
+        <section class="card" style="margin-bottom: 0;">
+            <h2>Failure Probability (%)</h2>
             <div class="chart-box">
-                <canvas id="speedChart"></canvas>
+                <canvas id="predictionChart"></canvas>
             </div>
         </section>
     </div>
 
-    <section class="card" style="margin-bottom: 18px;">
-        <h2>Failure Probability Trajectory (%)</h2>
-        <div class="chart-box">
-            <canvas id="predictionChart"></canvas>
-        </div>
-    </section>
-
-    <section class="card" style="margin-bottom: 18px;">
-        <h2>Prediction &amp; Health Score History</h2>
+    <section class="card">
+        <h2>Prediction History</h2>
         {% if predictions %}
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th>Timestamp</th>
-                            <th>Prediction Label</th>
+                            <th>Prediction</th>
                             <th>Failure Probability</th>
                             <th>Health Score</th>
                         </tr>
@@ -83,19 +50,19 @@
                                         {{ prediction.prediction_label }}
                                     </span>
                                 </td>
-                                <td><strong>{{ "%.2f"|format((prediction.failure_probability or 0) * 100) }}%</strong></td>
-                                <td>{{ "%.2f"|format(prediction.health_score or 0) }} / 100</td>
+                                <td>{{ "%.2f"|format((prediction.failure_probability or 0) * 100) }}%</td>
+                                <td>{{ "%.2f"|format(prediction.health_score or 0) }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         {% else %}
-            <p class="empty-state">No predictions available for this equipment yet.</p>
+            <p class="empty-state">No predictions recorded yet.</p>
         {% endif %}
     </section>
 
-    <section class="card" style="margin-bottom: 18px;">
+    <section class="card">
         <h2>Sensor Reading History</h2>
         {% if sensor_readings %}
             <div class="table-wrapper">
@@ -103,11 +70,11 @@
                     <thead>
                         <tr>
                             <th>Timestamp</th>
-                            <th>Air Temp [K]</th>
-                            <th>Process Temp [K]</th>
-                            <th>Rotational Speed [rpm]</th>
-                            <th>Torque [Nm]</th>
-                            <th>Tool Wear [min]</th>
+                            <th>Air Temp</th>
+                            <th>Process Temp</th>
+                            <th>Speed</th>
+                            <th>Torque</th>
+                            <th>Tool Wear</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,11 +92,9 @@
                 </table>
             </div>
         {% else %}
-            <p class="empty-state">No sensor readings available for this equipment yet.</p>
+            <p class="empty-state">No sensor readings recorded yet.</p>
         {% endif %}
     </section>
-
-    <p><a class="button-outline" href="{{ url_for('equipment_list') }}">← Back to Equipment List</a></p>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -137,92 +102,33 @@
 const sensorLabels = {{ sensor_readings | map(attribute='ts') | list | tojson }};
 const airTemperatures = {{ sensor_readings | map(attribute='air_temperature') | list | tojson }};
 const processTemperatures = {{ sensor_readings | map(attribute='process_temperature') | list | tojson }};
-const rotationalSpeeds = {{ sensor_readings | map(attribute='rotational_speed') | list | tojson }};
-
 const predictionLabels = {{ predictions | map(attribute='ts') | list | tojson }};
 const failureProbabilities = {{ predictions | map(attribute='failure_probability') | list | tojson }}
-    .map(value => +(value * 100).toFixed(2));
+    .map(v => +(v * 100).toFixed(2));
 
 if (typeof Chart !== "undefined") {
-    Chart.defaults.font.family = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-    Chart.defaults.color = "#64748b";
-
     new Chart(document.getElementById("temperatureChart"), {
         type: "line",
         data: {
             labels: sensorLabels,
             datasets: [
-                {
-                    label: "Air Temp (K)",
-                    data: airTemperatures,
-                    borderColor: "#0d9488",
-                    backgroundColor: "rgba(13, 148, 136, 0.08)",
-                    tension: 0.3,
-                    pointRadius: 3
-                },
-                {
-                    label: "Process Temp (K)",
-                    data: processTemperatures,
-                    borderColor: "#3b82f6",
-                    backgroundColor: "rgba(59, 130, 246, 0.08)",
-                    tension: 0.3,
-                    pointRadius: 3
-                }
+                { label: "Air Temp (K)", data: airTemperatures, borderColor: "#2563eb", tension: 0.2 },
+                { label: "Process Temp (K)", data: processTemperatures, borderColor: "#16a34a", tension: 0.2 }
             ]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { title: { display: true, text: "Temperature (K)" } }
-            }
-        }
-    });
-
-    new Chart(document.getElementById("speedChart"), {
-        type: "line",
-        data: {
-            labels: sensorLabels,
-            datasets: [{
-                label: "Rotational Speed (rpm)",
-                data: rotationalSpeeds,
-                borderColor: "#6366f1",
-                backgroundColor: "rgba(99, 102, 241, 0.08)",
-                fill: true,
-                tension: 0.3,
-                pointRadius: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 
     new Chart(document.getElementById("predictionChart"), {
         type: "line",
         data: {
             labels: predictionLabels,
-            datasets: [{
-                label: "Failure Probability (%)",
-                data: failureProbabilities,
-                borderColor: "#e11d48",
-                backgroundColor: "rgba(225, 29, 72, 0.08)",
-                fill: true,
-                tension: 0.3,
-                pointRadius: 3
-            }]
+            datasets: [{ label: "Failure Probability (%)", data: failureProbabilities, borderColor: "#dc2626", tension: 0.2 }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    min: 0,
-                    max: 100,
-                    title: { display: true, text: "Probability (%)" }
-                }
-            }
+            scales: { y: { min: 0, max: 100 } }
         }
     });
 }

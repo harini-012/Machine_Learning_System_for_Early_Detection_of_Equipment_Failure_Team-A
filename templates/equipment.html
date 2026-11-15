@@ -1,86 +1,46 @@
 {% extends "base.html" %}
-
-{% block title %}Equipment Management | Predictive Maintenance{% endblock %}
+{% block title %}Equipment | Predictive Maintenance{% endblock %}
 
 {% block content %}
-<section class="section equipment-page">
+<section class="section">
     <header class="page-heading">
         <div>
-            <h1>Equipment Registry</h1>
-            <p class="muted">Register industrial equipment units and inspect their complete diagnostic history.</p>
+            <h1>Equipment Management</h1>
+            <p class="muted">Register equipment and view prediction history.</p>
         </div>
-        <a class="button" href="{{ url_for('add_equipment') }}">
-            + Add Equipment
-        </a>
+        <a class="button" href="{{ url_for('add_equipment') }}">+ Add Equipment</a>
     </header>
 
     <div class="card">
-        <div class="equipment-toolbar">
-            <div>
-                <h2>Registered Equipment</h2>
-                <p class="muted">{{ equipment|length }} units registered in fleet</p>
-            </div>
-
-            {% if equipment %}
-                <div class="toolbar-actions">
-                    <input type="search"
-                           id="equipmentSearch"
-                           class="search-input"
-                           placeholder="Search by Equipment or Product ID..."
-                           aria-label="Search equipment">
-                </div>
-            {% endif %}
-        </div>
-
         {% if equipment %}
             <div class="table-wrapper">
-                <table id="equipmentTable" aria-label="Registered equipment">
+                <table>
                     <thead>
                         <tr>
-                            <th scope="col">Equipment ID</th>
-                            <th scope="col">Product ID</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Actions</th>
+                            <th>Equipment ID</th>
+                            <th>Product ID</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         {% for item in equipment %}
                             <tr>
-                                <th scope="row">
-                                    <a class="text-link" href="{{ url_for('equipment_detail', equipment_id=item.equipment_id) }}">
+                                <th>
+                                    <a href="{{ url_for('equipment_detail', equipment_id=item.equipment_id) }}">
                                         {{ item.equipment_id }}
                                     </a>
                                 </th>
                                 <td>{{ item.product_id or '—' }}</td>
-                                <td>
-                                    <span class="equipment-type">
-                                        Type {{ item.equipment_type }}
-                                    </span>
-                                </td>
-                                <td class="muted">
-                                    {{ item.description or '—' }}
-                                </td>
+                                <td><span class="equipment-type">{{ item.equipment_type }}</span></td>
+                                <td class="muted">{{ item.description or '—' }}</td>
                                 <td>
                                     <div class="equipment-actions">
-                                        <a class="equipment-action equipment-action-history"
-                                           href="{{ url_for('equipment_detail', equipment_id=item.equipment_id) }}">
-                                            History
-                                        </a>
-
-                                        <a class="equipment-action"
-                                           href="{{ url_for('edit_equipment', equipment_id=item.equipment_id) }}">
-                                            Edit
-                                        </a>
-
-                                        <form method="post"
-                                              action="{{ url_for('remove_equipment', equipment_id=item.equipment_id) }}"
-                                              onsubmit="return confirm('Delete this equipment and all its associated history?');">
-                                            <button class="equipment-action equipment-action-delete"
-                                                    type="submit">
-                                                Delete
-                                            </button>
+                                        <a class="equipment-action" href="{{ url_for('equipment_detail', equipment_id=item.equipment_id) }}">History</a>
+                                        <a class="equipment-action" href="{{ url_for('edit_equipment', equipment_id=item.equipment_id) }}">Edit</a>
+                                        <form method="post" action="{{ url_for('remove_equipment', equipment_id=item.equipment_id) }}">
+                                            <button class="equipment-action equipment-action-delete" type="submit">Delete</button>
                                         </form>
                                     </div>
                                 </td>
@@ -90,25 +50,8 @@
                 </table>
             </div>
         {% else %}
-            <p class="empty-state">
-                No equipment registered yet. Click <strong>Add Equipment</strong> to get started.
-            </p>
+            <p class="empty-state">No equipment registered yet.</p>
         {% endif %}
     </div>
 </section>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.getElementById("equipmentSearch");
-    const table = document.getElementById("equipmentTable");
-    if (!searchInput || !table) return;
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-    searchInput.addEventListener("input", function () {
-        const query = this.value.trim().toLowerCase();
-        rows.forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(query) ? "" : "none";
-        });
-    });
-});
-</script>
 {% endblock %}

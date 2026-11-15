@@ -341,14 +341,21 @@ def upsert_equipment(
 # Equipment Management (Milestone 4)
 # ---------------------------------------------------------------------------
 
-def get_all_equipment() -> List[Dict[str, Any]]:
-    """Retrieve all registered equipment."""
+def get_all_equipment(limit: int = 25) -> List[Dict[str, Any]]:
+    """Retrieve registered equipment (user-added and recently updated first)."""
     init_database()
 
     with managed_connection() as (conn, backend):
         cur = conn.cursor()
         cur.execute(
-            "SELECT * FROM equipment ORDER BY equipment_id ASC;"
+            f"""
+            SELECT * FROM equipment
+            ORDER BY
+                CASE WHEN equipment_id LIKE 'OBS-%' THEN 1 ELSE 0 END ASC,
+                updated_at DESC,
+                equipment_id ASC
+            LIMIT {int(limit)};
+            """
         )
         return _rows_to_dicts(cur.fetchall())
 

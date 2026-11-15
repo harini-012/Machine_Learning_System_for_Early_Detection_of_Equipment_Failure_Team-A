@@ -4,25 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Predictive Maintenance{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='3.0') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='4.0') }}">
 </head>
 <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-
     <header class="topbar">
         <div class="shell topbar-inner">
             <a class="brand" href="{{ url_for('home') }}">
-                <span class="brand-mark" aria-hidden="true">PM</span>
                 Predictive Maintenance
             </a>
 
             <nav aria-label="Main navigation">
                 <a href="{{ url_for('home') }}"
                    {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
-                    Overview
+                    Home
                 </a>
 
                 <a href="{{ url_for('dashboard') }}"
@@ -52,8 +46,7 @@
     </main>
 
     <footer class="shell footer">
-        <span>Equipment Failure Prediction &amp; Health Monitoring System</span>
-        <span>AI4I 2020 Predictive Maintenance · XGBoost Engine</span>
+        Equipment Failure Prediction System
     </footer>
 </body>
 </html>
