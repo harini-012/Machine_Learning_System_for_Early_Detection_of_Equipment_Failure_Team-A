@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='2.0') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='3.0') }}">
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -19,31 +19,31 @@
                 Predictive Maintenance
             </a>
 
-           <nav aria-label="Main navigation">
-    <a href="{{ url_for('home') }}"
-       {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
-        Overview
-    </a>
+            <nav aria-label="Main navigation">
+                <a href="{{ url_for('home') }}"
+                   {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
+                    Overview
+                </a>
 
-    <a href="{{ url_for('dashboard') }}"
-       {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>
-        Prediction
-    </a>
+                <a href="{{ url_for('dashboard') }}"
+                   {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>
+                    Prediction
+                </a>
 
-    <a href="{{ url_for('equipment_list') }}"
-       {% if request.endpoint in ['equipment_list', 'add_equipment', 'edit_equipment', 'equipment_detail'] %}
-           aria-current="page"
-       {% endif %}>
-        Equipment
-    </a>
+                <a href="{{ url_for('equipment_list') }}"
+                   {% if request.endpoint in ['equipment_list', 'add_equipment', 'edit_equipment', 'equipment_detail'] %}
+                       aria-current="page"
+                   {% endif %}>
+                    Equipment
+                </a>
 
-    {% for key, item in monitoring_pages.items() if key != 'history' %}
-        <a href="{{ url_for('monitoring', page=key) }}"
-           {% if page_key == key %}aria-current="page"{% endif %}>
-            {{ item.nav }}
-        </a>
-    {% endfor %}
-</nav>
+                {% for key, item in monitoring_pages.items() %}
+                    <a href="{{ url_for('monitoring', page=key) }}"
+                       {% if page_key == key %}aria-current="page"{% endif %}>
+                        {{ item.nav }}
+                    </a>
+                {% endfor %}
+            </nav>
         </div>
     </header>
 
