@@ -5,13 +5,39 @@
 <section class="section">
     <header class="page-heading">
         <div>
-            <h1>Equipment: {{ equipment.equipment_id }}</h1>
-            <p class="muted">Type {{ equipment.equipment_type }} · Product ID: {{ equipment.product_id or "N/A" }} · {{ equipment.description or "" }}</p>
+            <h1>Equipment Profile: {{ equipment.equipment_id }}</h1>
+            <p class="muted">{{ equipment.description or "Historical sensor observations, ML failure predictions, and health telemetry." }}</p>
         </div>
-        <a class="button-outline" href="{{ url_for('equipment_list') }}">← Back to Equipment</a>
+        <div class="toolbar-actions">
+            <a class="button-outline" href="{{ url_for('edit_equipment', equipment_id=equipment.equipment_id) }}">Edit Equipment</a>
+            <a class="button-outline" href="{{ url_for('equipment_list') }}">← Back to Registry</a>
+        </div>
     </header>
 
-    <div class="detail-grid" style="margin-bottom: 16px;">
+    <div class="stat-grid">
+        <div class="stat-card">
+            <span class="stat-label">Equipment ID</span>
+            <p class="stat-value" style="font-size: 1.35rem;">{{ equipment.equipment_id }}</p>
+            <span class="muted" style="font-size: 0.78rem;">Product ID: {{ equipment.product_id or "N/A" }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Variant Type</span>
+            <p class="stat-value" style="font-size: 1.35rem;">Type {{ equipment.equipment_type }}</p>
+            <span class="muted" style="font-size: 0.78rem;">AI4I 2020 Standard</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Sensor Readings</span>
+            <p class="stat-value" style="font-size: 1.35rem;">{{ sensor_readings|length }}</p>
+            <span class="muted" style="font-size: 0.78rem;">Recorded observations</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">ML Predictions</span>
+            <p class="stat-value" style="font-size: 1.35rem;">{{ predictions|length }}</p>
+            <span class="muted" style="font-size: 0.78rem;">Active alerts: {{ alerts|length }}</span>
+        </div>
+    </div>
+
+    <div class="detail-grid" style="margin-bottom: 18px;">
         <section class="card" style="margin-bottom: 0;">
             <h2>Temperature Trends (K)</h2>
             <div class="chart-box">
@@ -20,15 +46,22 @@
         </section>
 
         <section class="card" style="margin-bottom: 0;">
-            <h2>Failure Probability (%)</h2>
+            <h2>Rotational Speed (rpm)</h2>
             <div class="chart-box">
-                <canvas id="predictionChart"></canvas>
+                <canvas id="speedChart"></canvas>
             </div>
         </section>
     </div>
 
     <section class="card">
-        <h2>Prediction History</h2>
+        <h2>Failure Probability Trajectory (%)</h2>
+        <div class="chart-box">
+            <canvas id="predictionChart"></canvas>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Prediction &amp; Health Score History</h2>
         {% if predictions %}
             <div class="table-wrapper">
                 <table>
@@ -50,8 +83,8 @@
                                         {{ prediction.prediction_label }}
                                     </span>
                                 </td>
-                                <td>{{ "%.2f"|format((prediction.failure_probability or 0) * 100) }}%</td>
-                                <td>{{ "%.2f"|format(prediction.health_score or 0) }}</td>
+                                <td><strong>{{ "%.2f"|format((prediction.failure_probability or 0) * 100) }}%</strong></td>
+                                <td>{{ "%.2f"|format(prediction.health_score or 0) }} / 100</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -70,11 +103,11 @@
                     <thead>
                         <tr>
                             <th>Timestamp</th>
-                            <th>Air Temp</th>
-                            <th>Process Temp</th>
-                            <th>Speed</th>
-                            <th>Torque</th>
-                            <th>Tool Wear</th>
+                            <th>Air Temp [K]</th>
+                            <th>Process Temp [K]</th>
+                            <th>Speed [rpm]</th>
+                            <th>Torque [Nm]</th>
+                            <th>Tool Wear [min]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,6 +135,7 @@
 const sensorLabels = {{ sensor_readings | map(attribute='ts') | list | tojson }};
 const airTemperatures = {{ sensor_readings | map(attribute='air_temperature') | list | tojson }};
 const processTemperatures = {{ sensor_readings | map(attribute='process_temperature') | list | tojson }};
+const rotationalSpeeds = {{ sensor_readings | map(attribute='rotational_speed') | list | tojson }};
 const predictionLabels = {{ predictions | map(attribute='ts') | list | tojson }};
 const failureProbabilities = {{ predictions | map(attribute='failure_probability') | list | tojson }}
     .map(v => +(v * 100).toFixed(2));
@@ -112,9 +146,18 @@ if (typeof Chart !== "undefined") {
         data: {
             labels: sensorLabels,
             datasets: [
-                { label: "Air Temp (K)", data: airTemperatures, borderColor: "#2563eb", tension: 0.2 },
-                { label: "Process Temp (K)", data: processTemperatures, borderColor: "#16a34a", tension: 0.2 }
+                { label: "Air Temp (K)", data: airTemperatures, borderColor: "#4f46e5", backgroundColor: "rgba(79,70,229,0.08)", tension: 0.3 },
+                { label: "Process Temp (K)", data: processTemperatures, borderColor: "#0d9488", backgroundColor: "rgba(13,148,136,0.08)", tension: 0.3 }
             ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    new Chart(document.getElementById("speedChart"), {
+        type: "line",
+        data: {
+            labels: sensorLabels,
+            datasets: [{ label: "Speed (rpm)", data: rotationalSpeeds, borderColor: "#0284c7", backgroundColor: "rgba(2,132,199,0.08)", fill: true, tension: 0.3 }]
         },
         options: { responsive: true, maintainAspectRatio: false }
     });
@@ -123,7 +166,7 @@ if (typeof Chart !== "undefined") {
         type: "line",
         data: {
             labels: predictionLabels,
-            datasets: [{ label: "Failure Probability (%)", data: failureProbabilities, borderColor: "#dc2626", tension: 0.2 }]
+            datasets: [{ label: "Failure Probability (%)", data: failureProbabilities, borderColor: "#e11d48", backgroundColor: "rgba(225,29,72,0.08)", fill: true, tension: 0.3 }]
         },
         options: {
             responsive: true,

@@ -197,6 +197,17 @@ def render_prediction(template_name, allow_direct_type: bool = False):
     return render_template(template_name, **context)
 
 
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "service": "equipment-failure-detection-team-a",
+        "model": "XGBClassifier",
+        "accuracy": 0.9905,
+        "roc_auc": 0.9750,
+    }
+
+
 @app.get("/")
 def home():
     return render_template("home.html")

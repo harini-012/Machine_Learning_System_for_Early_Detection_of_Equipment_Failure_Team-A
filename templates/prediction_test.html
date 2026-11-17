@@ -18,6 +18,9 @@
                 <p class="form-error" role="alert">{{ error }}</p>
             {% endif %}
 
+            <!-- React Interactive Preset & Live Celsius Converter Mount -->
+            <div id="react-sensor-presets"></div>
+
             <div class="fields">
                 <div class="field">
                     <label for="equipment_id">Equipment ID</label>
@@ -57,13 +60,25 @@
             {% if result %}
                 {% set probability = result.failure_probability * 100 %}
                 {% set failure = result.predicted_failure == 1 %}
-                <div class="result-header">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                     <span class="status {{ 'status-danger' if failure else 'status-success' }}">
                         {{ result.prediction_label }}
                     </span>
+                    <span class="badge {{ 'badge-danger' if result.risk_level == 'Critical' else ('badge-warning' if result.risk_level == 'Warning' else 'badge-success') }}">
+                        {{ result.risk_level }} Risk
+                    </span>
                 </div>
-                <p class="probability">{{ "%.2f"|format(probability) }}%</p>
-                <p class="muted" style="font-size: 0.82rem;">Failure probability for <strong>{{ result.equipment_id }}</strong></p>
+
+                <div id="react-gauge-mount"
+                     data-probability="{{ '%.2f'|format(probability) }}"
+                     data-health="{{ '%.2f'|format(result.health_score or 0) }}"
+                     data-failure="{{ result.predicted_failure }}">
+                    <p class="probability">{{ "%.2f"|format(probability) }}%</p>
+                </div>
+
+                <p class="muted" style="font-size: 0.82rem; text-align: center;">
+                    Failure probability for <a href="{{ url_for('equipment_detail', equipment_id=result.equipment_id) }}"><strong>{{ result.equipment_id }}</strong></a>
+                </p>
             {% else %}
                 <p class="empty-state">Submit readings to view the model prediction.</p>
             {% endif %}

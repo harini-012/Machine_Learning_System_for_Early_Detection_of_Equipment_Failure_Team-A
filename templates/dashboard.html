@@ -115,6 +115,24 @@
                     </div>
                 </dl>
 
+                {% if result.recommended_actions %}
+                    <div style="margin: 12px 0; padding: 12px 14px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem;">
+                        <strong style="display: block; margin-bottom: 6px; color: #0f172a;">Maintenance Steps</strong>
+                        <ul style="margin: 0; padding-left: 18px; color: #334155;">
+                            {% for step in result.recommended_actions %}
+                                <li>{{ step }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {% if result.alert %}
+                    <p class="alert-banner" style="margin: 12px 0;" role="status">
+                        <strong>{{ result.alert.risk_level }} Alert ({{ result.alert.status }}):</strong>
+                        {{ result.alert.alert_description }}
+                    </p>
+                {% endif %}
+
                 <a class="button-outline" style="width: 100%;" href="{{ url_for('equipment_detail', equipment_id=result.equipment_id) }}">
                     View Complete Equipment History →
                 </a>
