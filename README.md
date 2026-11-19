@@ -20,7 +20,7 @@ An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and
 
 ---
 
-## Advanced Tasks (`T38` – `T42`)
+## Advanced Tasks (`T38` – `T45`)
 
 | Task ID | Advanced Task | Expected Submission | Implementation & Generated Artifacts |
 | :---: | :--- | :--- | :--- |
@@ -29,6 +29,9 @@ An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and
 | **T40** | Investigate anomaly detection using Isolation Forest. | **Anomaly detection notebook** | `notebooks/T40_Isolation_Forest_Anomaly_Detection.ipynb`, `src/isolation_forest_anomaly.py`, `reports/t40_isolation_forest_results.csv`, `reports/t40_isolation_forest_comparison.png` |
 | **T41** | Explain predictions using feature importance or SHAP. | **Explainability report** | `src/model_explainability.py`, `reports/t41_explainability_report.md`, `reports/t41_feature_importance.csv`, `reports/t41_feature_importance_chart.png` (Exact TreeSHAP `pred_contribs=True` + Permutation F1 Importance + Live local SHAP explanations in `/dashboard`) |
 | **T42** | Examine how prediction performance changes at different decision thresholds. | **Precision-recall comparison** | `src/threshold_precision_recall.py`, `reports/t42_precision_recall_threshold_report.md`, `reports/t42_threshold_metrics.csv`, `reports/t42_precision_recall_threshold_chart.png` (`PR-AUC = 88.24%`, threshold analysis across $t \in [0.10, 0.90]$) |
+| **T43** | Test the model on a different dataset, if compatible labeled data is available. | **Generalization report** | `src/model_generalization_test.py`, `data/external/external_plant_telemetry.csv` (`1,500` labeled cross-plant observations), `reports/t43_generalization_report.md`, `reports/t43_generalization_metrics.csv`, `reports/t43_generalization_chart.png` |
+| **T44** | Design a simulated sensor-monitoring pipeline. | **Architecture diagram and prototype** | `src/sensor_monitoring_pipeline.py`, `reports/t44_pipeline_architecture_diagram.png`, `reports/t44_pipeline_architecture_and_prototype.md`, `reports/t44_simulated_stream_log.csv` (6-stage streaming pipeline + 20-tick progressive degradation simulation) |
+| **T45** | Propose how the system could send maintenance alerts. | **Alert design and demo** | `src/maintenance_alert_notifier.py`, `reports/t45_alert_design_and_demo.md`, `reports/t45_alert_dispatch_log.json`, `reports/t45_alert_dispatch_log.csv` (Multi-channel SMTP Email + Slack Block-Kit Webhook + PagerDuty/SMS escalation with deduplication) |
 
 ---
 

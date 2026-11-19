@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Advanced ML Tasks (T38–T42) | Predictive Maintenance{% endblock %}
+{% block title %}Advanced ML Tasks (T38–T45) | Predictive Maintenance{% endblock %}
 
 {% block content %}
 <section class="section">
     <header class="page-heading">
         <div>
-            <h1>Advanced ML Tasks (T38–T42)</h1>
-            <p class="muted">Failure-Type Multiclass Model, Binary vs. Multiclass Comparison, Isolation Forest Anomaly Detection, TreeSHAP Explainability, and Decision Threshold Analysis.</p>
+            <h1>Advanced ML Tasks (T38–T45)</h1>
+            <p class="muted">Failure-Type Model, Binary vs. Multiclass Comparison, Isolation Forest, TreeSHAP Explainability, Threshold PR Analysis, Cross-Dataset Generalization, Simulated Sensor Stream, and Multi-Channel Alert Dispatch.</p>
         </div>
         <a class="button" href="{{ url_for('dashboard') }}">Test Live in Prediction Studio →</a>
     </header>
@@ -184,6 +184,130 @@
                             <td><span class="badge badge-warning">{{ row['FP (False Alarms)'] }}</span></td>
                             <td><span class="badge badge-danger">{{ row['FN (Missed Failures)'] }}</span></td>
                             <td class="muted">{{ row['Operational Regime'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T43: Cross-Dataset Generalization Report -->
+    <div class="card">
+        <h2>T43 · Cross-Dataset Model Generalization Report (`data/external/external_plant_telemetry.csv`)</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Evaluates the production model without retraining across three external labeled plant regimes (`1,500` samples: High-Ambient `+3.5 K` Shift, Heavy-Load Torque Shift, and Noisy Legacy IoT Sensors).
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dataset / Plant Domain</th>
+                        <th>Samples</th>
+                        <th>Actual Failures</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>ROC-AUC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t43_rows %}
+                        <tr>
+                            <th>{{ row['Dataset / Plant Domain'] }}</th>
+                            <td>{{ row['Samples'] }}</td>
+                            <td>{{ row['Actual Failures'] }}</td>
+                            <td><strong>{{ "%.2f"|format(row['Accuracy'] * 100) }}%</strong></td>
+                            <td>{{ "%.2f"|format(row['Precision'] * 100) }}%</td>
+                            <td>{{ "%.2f"|format(row['Recall'] * 100) }}%</td>
+                            <td><strong>{{ "%.2f"|format(row['F1-Score'] * 100) }}%</strong></td>
+                            <td><strong>{{ "%.2f"|format(row['ROC-AUC'] * 100) }}%</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T44: Simulated Sensor-Monitoring Pipeline Prototype -->
+    <div class="card">
+        <h2>T44 · Simulated Real-Time Sensor-Monitoring Pipeline Prototype (`SIM-CNC-01`)</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            20-step streaming telemetry simulation progressing from Normal Operation → Early Degradation → Critical Failure Stress → Post-Maintenance Reset.
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tick</th>
+                        <th>Operating Phase</th>
+                        <th>Air / Proc [K]</th>
+                        <th>Speed [rpm]</th>
+                        <th>Torque [Nm]</th>
+                        <th>Wear [min]</th>
+                        <th>Failure Prob</th>
+                        <th>Health Score</th>
+                        <th>Risk Level</th>
+                        <th>Specific Mode (T38)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t44_rows %}
+                        {% set risk = row['Risk Level'] %}
+                        <tr>
+                            <th>#{{ row['Step'] }}</th>
+                            <td>{{ row['Operating Phase'] }}</td>
+                            <td>{{ row['Air Temp [K]'] }} / {{ row['Process Temp [K]'] }}</td>
+                            <td>{{ row['Speed [rpm]'] }}</td>
+                            <td>{{ row['Torque [Nm]'] }}</td>
+                            <td>{{ row['Tool Wear [min]'] }}</td>
+                            <td><strong>{{ "%.1f"|format(row['Failure Probability'] * 100) }}%</strong></td>
+                            <td>{{ "%.1f"|format(row['Health Score']) }}</td>
+                            <td><span class="badge {{ 'badge-danger' if risk == 'Critical' else ('badge-warning' if risk == 'Warning' else 'badge-success') }}">{{ risk }}</span></td>
+                            <td>{{ row['Specific Failure Mode (T38)'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T45: Multi-Channel Maintenance Alert Design & Demo -->
+    <div class="card">
+        <h2>T45 · Multi-Channel Maintenance Alert Dispatch Design &amp; Demo (`src/maintenance_alert_notifier.py`)</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Demonstrates severity-tiered routing (`SMTP Email Work Order`, `Slack Block-Kit Webhook`, and `PagerDuty/SMS On-Call Escalation`) with duplicate suppression and `Warning → Critical` escalation override.
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Equipment ID</th>
+                        <th>Severity</th>
+                        <th>Failure Prob</th>
+                        <th>Suspected Issue</th>
+                        <th>Dispatched?</th>
+                        <th>Channels Triggered</th>
+                        <th>Dispatch Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t45_rows %}
+                        {% set risk = row['Risk Level'] %}
+                        <tr>
+                            <td>{{ row['Timestamp'] }}</td>
+                            <th>{{ row['Equipment ID'] }}</th>
+                            <td><span class="badge {{ 'badge-danger' if risk == 'Critical' else 'badge-warning' }}">{{ risk }}</span></td>
+                            <td><strong>{{ row['Failure Probability'] }}</strong></td>
+                            <td>{{ row['Suspected Issue'] }}</td>
+                            <td>
+                                <span class="badge {{ 'badge-success' if row['Dispatched'] == 'Yes' else '' }}">
+                                    {{ row['Dispatched'] }}
+                                </span>
+                            </td>
+                            <td><code>{{ row['Channels Triggered'] }}</code></td>
+                            <td class="muted">{{ row['Dispatch Reason'] }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

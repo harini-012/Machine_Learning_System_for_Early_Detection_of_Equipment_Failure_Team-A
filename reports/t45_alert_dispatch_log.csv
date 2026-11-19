@@ -1,0 +1,5 @@
+Timestamp,Equipment ID,Risk Level,Failure Probability,Suspected Issue,Dispatched,Channels Triggered,Target / SLA,Dispatch Reason
+2026-11-19T14:00:00+00:00,EQ-CNC-104,Warning,42.15%,Tool Wear Failure (TWF),Yes,"SMTP_EMAIL, SLACK_WEBHOOK",shift-maintenance@plant-team-a.io (24 hours (Next Shift Window)),New Active Alert Dispatched
+2026-11-19T14:15:00+00:00,EQ-CNC-104,Warning,44.90%,Tool Wear Failure (TWF),Suppressed (Dedup),None,N/A (Suppressed),Suppressed duplicate alert (open Warning alert already active for EQ-CNC-104).
+2026-11-19T14:30:00+00:00,EQ-CNC-104,Critical,91.80%,Overstrain Failure (OSF),Yes,"SMTP_EMAIL, SLACK_WEBHOOK, PAGERDUTY_SMS",oncall-reliability@plant-team-a.io (15 minutes (Immediate Dispatch)),Escalated Warning -> Critical
+2026-11-19T14:45:00+00:00,EQ-MILL-209,Critical,87.40%,Heat Dissipation Failure (HDF),Yes,"SMTP_EMAIL, SLACK_WEBHOOK, PAGERDUTY_SMS",oncall-reliability@plant-team-a.io (15 minutes (Immediate Dispatch)),New Active Alert Dispatched

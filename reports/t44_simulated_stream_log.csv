@@ -1,0 +1,21 @@
+Step,Timestamp,Equipment ID,Operating Phase,Air Temp [K],Process Temp [K],Speed [rpm],Torque [Nm],Tool Wear [min],Prediction,Failure Probability,Health Score,Health Status,Risk Level,Specific Failure Mode (T38),Top SHAP Driver (T41),Recommended Action
+1,2026-11-19T12:15:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.42,308.63,1534,40.65,34,No Failure,0.0007,99.93,Good,Healthy,No Failure,Torque [Nm] (-1.58),Routine Monitoring
+2,2026-11-19T12:30:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.47,308.72,1522,40.49,48,No Failure,0.0007,99.93,Good,Healthy,No Failure,Torque [Nm] (-1.58),Routine Monitoring
+3,2026-11-19T12:45:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.53,308.69,1521,41.68,62,No Failure,0.0007,99.93,Good,Healthy,No Failure,Torque [Nm] (-1.57),Routine Monitoring
+4,2026-11-19T13:00:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.54,308.76,1512,42.37,76,No Failure,0.0006,99.94,Good,Healthy,No Failure,Torque [Nm] (-1.73),Routine Monitoring
+5,2026-11-19T13:15:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.64,308.86,1502,43.33,90,No Failure,0.0005,99.95,Good,Healthy,No Failure,Torque [Nm] (-1.72),Routine Monitoring
+6,2026-11-19T13:30:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.86,308.99,1489,43.94,104,No Failure,0.0005,99.95,Good,Healthy,No Failure,Torque [Nm] (-1.74),Routine Monitoring
+7,2026-11-19T13:45:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,298.76,309.02,1479,44.23,118,No Failure,0.0005,99.95,Good,Healthy,No Failure,Torque [Nm] (-1.74),Routine Monitoring
+8,2026-11-19T14:00:00+00:00,SIM-CNC-01,Phase 1: Normal Operation,299.12,309.31,1474,45.21,132,No Failure,0.0012,99.88,Good,Healthy,No Failure,Tool wear [min] (-1.26),Routine Monitoring
+9,2026-11-19T14:15:00+00:00,SIM-CNC-01,Phase 2: Early Degradation,299.75,308.83,1422,50.2,147,No Failure,0.0033,99.67,Good,Healthy,No Failure,Tool wear [min] (-0.99),Routine Monitoring
+10,2026-11-19T14:30:00+00:00,SIM-CNC-01,Phase 2: Early Degradation,300.0,308.96,1404,52.4,159,No Failure,0.0036,99.64,Good,Healthy,No Failure,Tool wear [min] (-1.03),Routine Monitoring
+11,2026-11-19T14:45:00+00:00,SIM-CNC-01,Phase 2: Early Degradation,300.25,309.09,1386,54.6,171,No Failure,0.0061,99.39,Good,Healthy,No Failure,Tool wear [min] (-1.15),Tool Replacement
+12,2026-11-19T15:00:00+00:00,SIM-CNC-01,Phase 2: Early Degradation,300.5,309.22,1368,56.8,183,No Failure,0.1554,84.46,Good,Healthy,No Failure,Torque [Nm] (+1.99),Tool Replacement
+13,2026-11-19T15:15:00+00:00,SIM-CNC-01,Phase 2: Early Degradation,300.75,309.35,1350,59.0,195,Failure,0.77,23.0,Poor,Critical,OSF (Overstrain),Torque [Nm] (+2.22),Comprehensive Emergency Overhaul
+14,2026-11-19T15:30:00+00:00,SIM-CNC-01,Phase 2: Early Degradation,301.0,309.48,1332,61.2,207,Failure,0.9984,0.16,Poor,Critical,HDF (Heat Dissipation),Torque [Nm] (+3.28),Comprehensive Emergency Overhaul
+15,2026-11-19T15:45:00+00:00,SIM-CNC-01,Phase 3: Critical Failure Stress,302.15,309.95,1315,65.5,218,Failure,0.999,0.1,Poor,Critical,HDF (Heat Dissipation),Torque [Nm] (+3.87),Comprehensive Emergency Overhaul
+16,2026-11-19T16:00:00+00:00,SIM-CNC-01,Phase 3: Critical Failure Stress,302.5,310.2,1300,68.0,226,Failure,0.9994,0.06,Poor,Critical,HDF (Heat Dissipation),Torque [Nm] (+4.71),Comprehensive Emergency Overhaul
+17,2026-11-19T16:15:00+00:00,SIM-CNC-01,Phase 3: Critical Failure Stress,302.85,310.45,1285,70.5,234,Failure,0.9993,0.07,Poor,Critical,HDF (Heat Dissipation),Torque [Nm] (+4.54),Comprehensive Emergency Overhaul
+18,2026-11-19T16:30:00+00:00,SIM-CNC-01,Phase 3: Critical Failure Stress,303.2,310.7,1270,73.0,242,Failure,0.9994,0.06,Poor,Critical,HDF (Heat Dissipation),Torque [Nm] (+4.68),Comprehensive Emergency Overhaul
+19,2026-11-19T16:45:00+00:00,SIM-CNC-01,Phase 4: Post-Maintenance Reset,298.0,308.5,1560,38.0,0,No Failure,0.0007,99.93,Good,Healthy,No Failure,Torque [Nm] (-1.45),Routine Monitoring
+20,2026-11-19T17:00:00+00:00,SIM-CNC-01,Phase 4: Post-Maintenance Reset,298.0,308.5,1560,38.0,5,No Failure,0.0007,99.93,Good,Healthy,No Failure,Torque [Nm] (-1.45),Routine Monitoring

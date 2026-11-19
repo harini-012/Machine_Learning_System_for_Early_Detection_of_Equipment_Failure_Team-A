@@ -226,6 +226,9 @@ def advanced_tasks():
         t40_rows=_load_csv_rows("t40_isolation_forest_results.csv"),
         t41_rows=_load_csv_rows("t41_feature_importance.csv"),
         t42_rows=_load_csv_rows("t42_threshold_metrics.csv"),
+        t43_rows=_load_csv_rows("t43_generalization_metrics.csv"),
+        t44_rows=_load_csv_rows("t44_simulated_stream_log.csv"),
+        t45_rows=_load_csv_rows("t45_alert_dispatch_log.csv"),
     )
 
 

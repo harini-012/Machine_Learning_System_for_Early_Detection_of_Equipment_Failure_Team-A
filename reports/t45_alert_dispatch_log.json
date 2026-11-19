@@ -1,0 +1,221 @@
+[
+  {
+    "equipment_id": "EQ-CNC-104",
+    "timestamp": "2026-11-19T14:00:00+00:00",
+    "risk_level": "Warning",
+    "failure_probability": 0.4215,
+    "health_score": 57.85,
+    "primary_issue": "Tool Wear Failure (TWF)",
+    "action_type": "Preventive Tool Replacement",
+    "dispatched": true,
+    "reason": "New Active Alert Dispatched",
+    "channels_triggered": [
+      "SMTP_EMAIL",
+      "SLACK_WEBHOOK"
+    ],
+    "sla": "24 hours (Next Shift Window)",
+    "recipient": "shift-maintenance@plant-team-a.io",
+    "payloads": {
+      "email": {
+        "channel": "SMTP_EMAIL",
+        "recipient": "shift-maintenance@plant-team-a.io",
+        "subject": "[WARNING MAINTENANCE] EQ-CNC-104 - Tool Wear Failure (TWF) (Failure Prob: 42.1%)",
+        "sla": "24 hours (Next Shift Window)",
+        "body_preview": "PREDICTIVE MAINTENANCE AUTOMATED WORK ORDER\n===========================================\nEquipment ID       : EQ-CNC-104\nSeverity / Risk    : Warning\nFailure Probability: 42.15%\nHealth Score       : 57.85 / 100\nSuspected Failure  : Tool Wear Failure (TWF)\nTop SHAP Driver    : Tool wear [min] = 202.0 (+1.48 SHAP)\nRequired Action    : Preventive Tool Replacement (Est. Downtime: 45 minutes)\n\nRecommended Maintenance Steps:\n  - Schedule cutting tool replacement at end of current batch.\n  - Verify spindle runout and lubrication flow.\n\nDashboard Link     : https://machine-learning-system-for-early.onrender.com/equipment/EQ-CNC-104\n"
+      },
+      "slack": {
+        "channel": "SLACK_WEBHOOK",
+        "target_channel": "#maintenance-warnings",
+        "payload": {
+          "channel": "#maintenance-warnings",
+          "username": "AI4I Predictive Maintenance Bot",
+          "attachments": [
+            {
+              "color": "#d97706",
+              "title": "WARNING ALERT: Equipment EQ-CNC-104 (Tool Wear Failure (TWF))",
+              "title_link": "https://machine-learning-system-for-early.onrender.com/equipment/EQ-CNC-104",
+              "fields": [
+                {
+                  "title": "Failure Probability",
+                  "value": "42.15%",
+                  "short": true
+                },
+                {
+                  "title": "Health Score",
+                  "value": "57.85 / 100",
+                  "short": true
+                },
+                {
+                  "title": "Abnormal Sensors",
+                  "value": "Tool wear [min]",
+                  "short": true
+                },
+                {
+                  "title": "Prescribed Action",
+                  "value": "Preventive Tool Replacement",
+                  "short": true
+                }
+              ],
+              "footer": "XGBoost + TreeSHAP Predictive Maintenance Engine",
+              "ts": 1795102019
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "equipment_id": "EQ-CNC-104",
+    "timestamp": "2026-11-19T14:15:00+00:00",
+    "risk_level": "Warning",
+    "dispatched": false,
+    "reason": "Suppressed duplicate alert (open Warning alert already active for EQ-CNC-104).",
+    "channels_triggered": []
+  },
+  {
+    "equipment_id": "EQ-CNC-104",
+    "timestamp": "2026-11-19T14:30:00+00:00",
+    "risk_level": "Critical",
+    "failure_probability": 0.918,
+    "health_score": 8.2,
+    "primary_issue": "Overstrain Failure (OSF)",
+    "action_type": "Immediate Shutdown & Overhaul",
+    "dispatched": true,
+    "reason": "Escalated Warning -> Critical",
+    "channels_triggered": [
+      "SMTP_EMAIL",
+      "SLACK_WEBHOOK",
+      "PAGERDUTY_SMS"
+    ],
+    "sla": "15 minutes (Immediate Dispatch)",
+    "recipient": "oncall-reliability@plant-team-a.io",
+    "payloads": {
+      "email": {
+        "channel": "SMTP_EMAIL",
+        "recipient": "oncall-reliability@plant-team-a.io",
+        "subject": "[CRITICAL SHUTDOWN] EQ-CNC-104 - Overstrain Failure (OSF) (Failure Prob: 91.8%)",
+        "sla": "15 minutes (Immediate Dispatch)",
+        "body_preview": "PREDICTIVE MAINTENANCE AUTOMATED WORK ORDER\n===========================================\nEquipment ID       : EQ-CNC-104\nSeverity / Risk    : Critical\nFailure Probability: 91.80%\nHealth Score       : 8.20 / 100\nSuspected Failure  : Overstrain Failure (OSF)\nTop SHAP Driver    : Torque [Nm] = 66.8 (+2.64 SHAP), Tool wear [min] = 224.0 (+2.11 SHAP)\nRequired Action    : Immediate Shutdown & Overhaul (Est. Downtime: 3-4 hours)\n\nRecommended Maintenance Steps:\n  - Halt spindle immediately to prevent shaft fracture.\n  - Replace worn cutting tool and recalibrate torque limiter.\n\nDashboard Link     : https://machine-learning-system-for-early.onrender.com/equipment/EQ-CNC-104\n"
+      },
+      "slack": {
+        "channel": "SLACK_WEBHOOK",
+        "target_channel": "#critical-plant-alerts",
+        "payload": {
+          "channel": "#critical-plant-alerts",
+          "username": "AI4I Predictive Maintenance Bot",
+          "attachments": [
+            {
+              "color": "#e11d48",
+              "title": "CRITICAL ALERT: Equipment EQ-CNC-104 (Overstrain Failure (OSF))",
+              "title_link": "https://machine-learning-system-for-early.onrender.com/equipment/EQ-CNC-104",
+              "fields": [
+                {
+                  "title": "Failure Probability",
+                  "value": "91.80%",
+                  "short": true
+                },
+                {
+                  "title": "Health Score",
+                  "value": "8.20 / 100",
+                  "short": true
+                },
+                {
+                  "title": "Abnormal Sensors",
+                  "value": "Torque [Nm], Tool wear [min]",
+                  "short": true
+                },
+                {
+                  "title": "Prescribed Action",
+                  "value": "Immediate Shutdown & Overhaul",
+                  "short": true
+                }
+              ],
+              "footer": "XGBoost + TreeSHAP Predictive Maintenance Engine",
+              "ts": 1795102019
+            }
+          ]
+        }
+      },
+      "pagerduty_sms": {
+        "channel": "PAGERDUTY_SMS",
+        "routing_key": "PD-SERVICE-CNC-SPINDLE-TEAM-A",
+        "event_action": "trigger",
+        "dedup_key": "pm-alert-EQ-CNC-104-overstrain-failure-(osf)",
+        "SMS_text": "[PLANT-ALERT CRITICAL] EQ-CNC-104: Overstrain Failure (OSF) detected (Prob 91.8%). Inspect immediately: https://machine-learning-system-for-early.onrender.com/equipment/EQ-CNC-104"
+      }
+    }
+  },
+  {
+    "equipment_id": "EQ-MILL-209",
+    "timestamp": "2026-11-19T14:45:00+00:00",
+    "risk_level": "Critical",
+    "failure_probability": 0.874,
+    "health_score": 12.6,
+    "primary_issue": "Heat Dissipation Failure (HDF)",
+    "action_type": "Emergency Cooling System Service",
+    "dispatched": true,
+    "reason": "New Active Alert Dispatched",
+    "channels_triggered": [
+      "SMTP_EMAIL",
+      "SLACK_WEBHOOK",
+      "PAGERDUTY_SMS"
+    ],
+    "sla": "15 minutes (Immediate Dispatch)",
+    "recipient": "oncall-reliability@plant-team-a.io",
+    "payloads": {
+      "email": {
+        "channel": "SMTP_EMAIL",
+        "recipient": "oncall-reliability@plant-team-a.io",
+        "subject": "[CRITICAL SHUTDOWN] EQ-MILL-209 - Heat Dissipation Failure (HDF) (Failure Prob: 87.4%)",
+        "sla": "15 minutes (Immediate Dispatch)",
+        "body_preview": "PREDICTIVE MAINTENANCE AUTOMATED WORK ORDER\n===========================================\nEquipment ID       : EQ-MILL-209\nSeverity / Risk    : Critical\nFailure Probability: 87.40%\nHealth Score       : 12.60 / 100\nSuspected Failure  : Heat Dissipation Failure (HDF)\nTop SHAP Driver    : Temperature Difference [K] = 7.8 (+2.31 SHAP)\nRequired Action    : Emergency Cooling System Service (Est. Downtime: 2-3 hours)\n\nRecommended Maintenance Steps:\n  - Inspect coolant pump pressure and clear heat exchanger fins.\n  - Verify ambient ventilation before restarting spindle.\n\nDashboard Link     : https://machine-learning-system-for-early.onrender.com/equipment/EQ-MILL-209\n"
+      },
+      "slack": {
+        "channel": "SLACK_WEBHOOK",
+        "target_channel": "#critical-plant-alerts",
+        "payload": {
+          "channel": "#critical-plant-alerts",
+          "username": "AI4I Predictive Maintenance Bot",
+          "attachments": [
+            {
+              "color": "#e11d48",
+              "title": "CRITICAL ALERT: Equipment EQ-MILL-209 (Heat Dissipation Failure (HDF))",
+              "title_link": "https://machine-learning-system-for-early.onrender.com/equipment/EQ-MILL-209",
+              "fields": [
+                {
+                  "title": "Failure Probability",
+                  "value": "87.40%",
+                  "short": true
+                },
+                {
+                  "title": "Health Score",
+                  "value": "12.60 / 100",
+                  "short": true
+                },
+                {
+                  "title": "Abnormal Sensors",
+                  "value": "Process temperature [K], Rotational speed [rpm]",
+                  "short": true
+                },
+                {
+                  "title": "Prescribed Action",
+                  "value": "Emergency Cooling System Service",
+                  "short": true
+                }
+              ],
+              "footer": "XGBoost + TreeSHAP Predictive Maintenance Engine",
+              "ts": 1795102019
+            }
+          ]
+        }
+      },
+      "pagerduty_sms": {
+        "channel": "PAGERDUTY_SMS",
+        "routing_key": "PD-SERVICE-CNC-SPINDLE-TEAM-A",
+        "event_action": "trigger",
+        "dedup_key": "pm-alert-EQ-MILL-209-heat-dissipation-failure-(hdf)",
+        "SMS_text": "[PLANT-ALERT CRITICAL] EQ-MILL-209: Heat Dissipation Failure (HDF) detected (Prob 87.4%). Inspect immediately: https://machine-learning-system-for-early.onrender.com/equipment/EQ-MILL-209"
+      }
+    }
+  }
+]

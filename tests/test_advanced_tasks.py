@@ -1,5 +1,5 @@
 """
-Automated Test Suite for Advanced Tasks T38, T39, T40, T41, and T42
+Automated Test Suite for Advanced Tasks T38 through T45
 (tests/test_advanced_tasks.py)
 
 Verifies:
@@ -9,6 +9,9 @@ Verifies:
   - T40: Isolation Forest anomaly detection investigation & Jupyter Notebook (.ipynb)
   - T41: Exact TreeSHAP & Permutation Feature Importance explainability report & local explanations
   - T42: Decision threshold & Precision-Recall comparison report & CSV
+  - T43: Cross-dataset model generalization test report, external telemetry CSV, and chart
+  - T44: Simulated sensor-monitoring pipeline architecture diagram, markdown spec, and 20-step stream log
+  - T45: Multi-channel maintenance alert notification design, deduplication logic, and dispatch demo
 """
 
 import json
@@ -17,6 +20,7 @@ from pathlib import Path
 
 from src.failure_type_model import predict_specific_failure_type
 from src.model_explainability import explain_single_prediction
+from src.maintenance_alert_notifier import dispatch_maintenance_alert
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 MODELS_DIR = PROJECT_DIR / "models"
@@ -24,7 +28,7 @@ REPORTS_DIR = PROJECT_DIR / "reports"
 NOTEBOOKS_DIR = PROJECT_DIR / "notebooks"
 
 
-class TestAdvancedTasksT38ToT42(unittest.TestCase):
+class TestAdvancedTasksT38ToT45(unittest.TestCase):
     def test_t38_failure_type_model_and_prediction(self):
         """Verify T38 failure-type model artifact, report CSV, and live failure-type inference."""
         self.assertTrue((MODELS_DIR / "failure_type_model.joblib").is_file())
@@ -88,6 +92,46 @@ class TestAdvancedTasksT38ToT42(unittest.TestCase):
         self.assertTrue((REPORTS_DIR / "t42_precision_recall_threshold_report.md").is_file())
         self.assertTrue((REPORTS_DIR / "t42_threshold_metrics.csv").is_file())
         self.assertTrue((REPORTS_DIR / "t42_precision_recall_threshold_chart.png").is_file())
+
+    def test_t43_cross_dataset_generalization_report(self):
+        """Verify T43 cross-dataset generalization report, external telemetry CSV, and chart."""
+        self.assertTrue((PROJECT_DIR / "data" / "external" / "external_plant_telemetry.csv").is_file())
+        self.assertTrue((REPORTS_DIR / "t43_generalization_report.md").is_file())
+        self.assertTrue((REPORTS_DIR / "t43_generalization_metrics.csv").is_file())
+        self.assertTrue((REPORTS_DIR / "t43_generalization_chart.png").is_file())
+
+    def test_t44_simulated_sensor_monitoring_pipeline(self):
+        """Verify T44 pipeline architecture diagram, markdown spec, and 20-step stream log."""
+        self.assertTrue((REPORTS_DIR / "t44_pipeline_architecture_diagram.png").is_file())
+        self.assertTrue((REPORTS_DIR / "t44_pipeline_architecture_and_prototype.md").is_file())
+        self.assertTrue((REPORTS_DIR / "t44_simulated_stream_log.csv").is_file())
+
+    def test_t45_maintenance_alert_design_and_demo(self):
+        """Verify T45 multi-channel alert dispatch design, deduplication, escalation, and logs."""
+        self.assertTrue((REPORTS_DIR / "t45_alert_design_and_demo.md").is_file())
+        self.assertTrue((REPORTS_DIR / "t45_alert_dispatch_log.json").is_file())
+        self.assertTrue((REPORTS_DIR / "t45_alert_dispatch_log.csv").is_file())
+
+        open_state = {}
+        ev_warn = {
+            "equipment_id": "EQ-TEST-45",
+            "risk_level": "Warning",
+            "failure_probability": 0.45,
+            "primary_issue": "Tool Wear Failure (TWF)",
+        }
+        r1 = dispatch_maintenance_alert(ev_warn, active_open_alerts=open_state)
+        self.assertTrue(r1["dispatched"])
+        self.assertIn("SMTP_EMAIL", r1["channels_triggered"])
+
+        # Duplicate warning should be suppressed
+        r2 = dispatch_maintenance_alert(ev_warn, active_open_alerts=open_state)
+        self.assertFalse(r2["dispatched"])
+
+        # Escalation to Critical should override and trigger PagerDuty/SMS too
+        ev_crit = {**ev_warn, "risk_level": "Critical", "failure_probability": 0.92}
+        r3 = dispatch_maintenance_alert(ev_crit, active_open_alerts=open_state)
+        self.assertTrue(r3["dispatched"])
+        self.assertIn("PAGERDUTY_SMS", r3["channels_triggered"])
 
 
 if __name__ == "__main__":
