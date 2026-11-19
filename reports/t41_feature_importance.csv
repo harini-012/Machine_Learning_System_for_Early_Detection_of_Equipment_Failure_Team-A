@@ -1,0 +1,10 @@
+Rank,Feature,Mean |SHAP| (Log-Odds),SHAP Share (%),XGBoost Gain Importance,Permutation F1 Drop
+1,Torque [Nm],1.2314,34.38,0.2136,0.4259
+2,Tool wear [min],1.2086,33.74,0.1547,0.1958
+3,Temperature Difference [K],0.4448,12.42,0.3058,0.3586
+4,Rotational speed [rpm],0.4173,11.65,0.1685,0.3403
+5,Process temperature [K],0.1095,3.06,0.0226,0.0108
+6,Air temperature [K],0.0964,2.69,0.0318,0.0096
+7,Type_L,0.032,0.89,0.0522,0.0344
+8,Type_M,0.0301,0.84,0.0325,0.0
+9,Type_H,0.0117,0.33,0.0182,0.0039

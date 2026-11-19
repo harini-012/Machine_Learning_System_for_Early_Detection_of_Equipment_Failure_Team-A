@@ -208,6 +208,27 @@ def health_check():
     }
 
 
+@app.get("/advanced")
+def advanced_tasks():
+    import pandas as pd
+    from pathlib import Path
+
+    reports_dir = Path(__file__).resolve().parent / "reports"
+
+    def _load_csv_rows(filename):
+        path = reports_dir / filename
+        return pd.read_csv(path).to_dict("records") if path.is_file() else []
+
+    return render_template(
+        "advanced.html",
+        t38_rows=_load_csv_rows("t38_failure_type_model_report.csv"),
+        t39_rows=_load_csv_rows("t39_binary_vs_multiclass_metrics.csv"),
+        t40_rows=_load_csv_rows("t40_isolation_forest_results.csv"),
+        t41_rows=_load_csv_rows("t41_feature_importance.csv"),
+        t42_rows=_load_csv_rows("t42_threshold_metrics.csv"),
+    )
+
+
 @app.get("/")
 def home():
     return render_template("home.html")

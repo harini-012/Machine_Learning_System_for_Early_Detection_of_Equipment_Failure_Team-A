@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Advanced ML Tasks (T38–T42) | Predictive Maintenance{% endblock %}
+
+{% block content %}
+<section class="section">
+    <header class="page-heading">
+        <div>
+            <h1>Advanced ML Tasks (T38–T42)</h1>
+            <p class="muted">Failure-Type Multiclass Model, Binary vs. Multiclass Comparison, Isolation Forest Anomaly Detection, TreeSHAP Explainability, and Decision Threshold Analysis.</p>
+        </div>
+        <a class="button" href="{{ url_for('dashboard') }}">Test Live in Prediction Studio →</a>
+    </header>
+
+    <!-- T38: Specific Failure-Type Model -->
+    <div class="card">
+        <h2>T38 · Specific Failure-Type Multiclass Model (`models/failure_type_model.joblib`)</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Predicts specific AI4I 2020 failure classes (`No Failure`, `HDF`, `OSF`, `PWF`, `TWF`, `RNF`) instead of only binary overall failure. Overall Multiclass Accuracy: <strong>97.95%</strong> · Weighted F1: <strong>98.00%</strong>.
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Failure Class</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>Test Support</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t38_rows %}
+                        <tr>
+                            <th>{{ row.failure_class }}</th>
+                            <td>{{ "%.2f"|format(row.precision * 100) }}%</td>
+                            <td>{{ "%.2f"|format(row.recall * 100) }}%</td>
+                            <td><strong>{{ "%.2f"|format(row.f1_score * 100) }}%</strong></td>
+                            <td>{{ row.support }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T39: Binary vs Multiclass Comparison -->
+    <div class="card">
+        <h2>T39 · Binary vs. Multiclass Classification Comparison Report</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Side-by-side comparison on the 2,000 held-out test observations comparing binary screening (`best_model.joblib`) with 6-class specific failure-type diagnosis (`failure_type_model.joblib`).
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Classification Approach</th>
+                        <th>Classes</th>
+                        <th>Accuracy</th>
+                        <th>Weighted F1</th>
+                        <th>Failure / Macro Precision</th>
+                        <th>Failure / Macro Recall</th>
+                        <th>Failure / Macro F1</th>
+                        <th>ROC-AUC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t39_rows %}
+                        <tr>
+                            <th>{{ row['Approach'] }}</th>
+                            <td><span class="badge">{{ row['Target Classes'] }}</span></td>
+                            <td><strong>{{ "%.2f"|format(row['Accuracy'] * 100) }}%</strong></td>
+                            <td>{{ "%.2f"|format(row['Weighted F1'] * 100) }}%</td>
+                            <td>{{ "%.2f"|format(row['Failure/Macro Precision'] * 100) }}%</td>
+                            <td>{{ "%.2f"|format(row['Failure/Macro Recall'] * 100) }}%</td>
+                            <td><strong>{{ "%.2f"|format(row['Failure/Macro F1'] * 100) }}%</strong></td>
+                            <td>{{ "%.2f"|format(row['ROC-AUC'] * 100) }}%</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T40: Isolation Forest Anomaly Detection -->
+    <div class="card">
+        <h2>T40 · Isolation Forest Anomaly Detection (`notebooks/T40_Isolation_Forest_Anomaly_Detection.ipynb`)</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Compares unsupervised multivariate `IsolationForest` across contamination rates against univariate IQR rule-based bounds on the 2,000 test records (`68` true failures).
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Contamination</th>
+                        <th>Anomalies Flagged</th>
+                        <th>True Failures Captured (of 68)</th>
+                        <th>Failure Precision</th>
+                        <th>Failure Recall</th>
+                        <th>Anomaly Score ROC-AUC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t40_rows %}
+                        <tr>
+                            <th>{{ row['Method'] }}</th>
+                            <td><span class="badge">{{ row['Contamination'] }}</span></td>
+                            <td>{{ row['Anomalies Flagged (of 2000)'] }}</td>
+                            <td><strong>{{ row['True Failures Captured (of 68)'] }} / 68</strong></td>
+                            <td>{{ "%.2f"|format(row['Failure Precision'] * 100) }}%</td>
+                            <td><strong>{{ "%.2f"|format(row['Failure Recall'] * 100) }}%</strong></td>
+                            <td>{{ "%.2f"|format(row['Anomaly Score ROC-AUC'] * 100) }}%</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T41: Feature Importance & Exact TreeSHAP -->
+    <div class="card">
+        <h2>T41 · Explainability Report: Exact TreeSHAP &amp; Permutation Importance</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Global ranking of the 9 engineered features computed across all 2,000 held-out test records using exact TreeSHAP (`pred_contribs=True`), XGBoost Gain, and Permutation F1 Drop.
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Feature</th>
+                        <th>Mean |SHAP| (Log-Odds)</th>
+                        <th>SHAP Impact Share</th>
+                        <th>XGBoost Gain Importance</th>
+                        <th>Permutation F1 Drop</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t41_rows %}
+                        <tr>
+                            <td><span class="badge">#{{ row['Rank'] }}</span></td>
+                            <th>{{ row['Feature'] }}</th>
+                            <td><strong>{{ "%.4f"|format(row['Mean |SHAP| (Log-Odds)']) }}</strong></td>
+                            <td>{{ "%.2f"|format(row['SHAP Share (%)']) }}%</td>
+                            <td>{{ "%.4f"|format(row['XGBoost Gain Importance']) }}</td>
+                            <td>{{ "%.4f"|format(row['Permutation F1 Drop']) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- T42: Decision Threshold & Precision-Recall Comparison -->
+    <div class="card">
+        <h2>T42 · Decision Threshold &amp; Precision-Recall Comparison (PR-AUC: 88.24%)</h2>
+        <p class="muted" style="margin-bottom: 12px;">
+            Examines how Precision, Recall, F1-Score, F2-Score, False Positives, and Missed Failures change across decision thresholds $t \in [0.10, 0.90]$.
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Threshold (t)</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>F2-Score</th>
+                        <th>TP (Caught)</th>
+                        <th>FP (False Alarms)</th>
+                        <th>FN (Missed)</th>
+                        <th>Operational Regime</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in t42_rows %}
+                        <tr>
+                            <th>{{ "%.2f"|format(row['Threshold']) }}</th>
+                            <td>{{ "%.2f"|format(row['Precision'] * 100) }}%</td>
+                            <td>{{ "%.2f"|format(row['Recall'] * 100) }}%</td>
+                            <td><strong>{{ "%.2f"|format(row['F1-Score'] * 100) }}%</strong></td>
+                            <td>{{ "%.2f"|format(row['F2-Score (Recall-Weighted)'] * 100) }}%</td>
+                            <td><span class="badge badge-success">{{ row['TP (Caught Failures)'] }}</span></td>
+                            <td><span class="badge badge-warning">{{ row['FP (False Alarms)'] }}</span></td>
+                            <td><span class="badge badge-danger">{{ row['FN (Missed Failures)'] }}</span></td>
+                            <td class="muted">{{ row['Operational Regime'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

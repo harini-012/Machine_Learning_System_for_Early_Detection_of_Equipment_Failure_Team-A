@@ -1,0 +1,6 @@
+Method,Contamination,Anomalies Flagged (of 2000),True Failures Captured (of 68),Failure Precision,Failure Recall,Failure F1,Anomaly Score ROC-AUC
+Univariate IQR Thresholds (Baseline),Rule-Based,91,13,0.1429,0.1912,0.1635,0.6512
+Isolation Forest (c=0.034),3.4%,82,16,0.1951,0.2353,0.2133,0.8711
+Isolation Forest (c=0.050),5.0%,128,23,0.1797,0.3382,0.2347,0.8711
+Isolation Forest (c=0.080),8.0%,203,34,0.1675,0.5,0.2509,0.8711
+Isolation Forest (c=0.100),10.0%,238,38,0.1597,0.5588,0.2484,0.8711

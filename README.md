@@ -10,11 +10,25 @@ An end-to-end **Predictive Maintenance, Anomaly Detection, Alert Management, and
 
 ## Live Deployed Application (Milestone 4)
 
-- **Deployed Production URL**: **https://machine-learning-system-for-early.onrender.com**
-- **Live Prediction Dashboard**: https://machine-learning-system-for-early.onrender.com/dashboard
-- **Standalone Prediction Test Form**: https://machine-learning-system-for-early.onrender.com/predict
-- **Equipment Registry & Management**: https://machine-learning-system-for-early.onrender.com/equipment
-- **Sample Live Equipment History (`EQ-RENDER-01` / `OBS-000001`)**: https://machine-learning-system-for-early.onrender.com/equipment/OBS-000001
+- **Live Deployed Application (Milestone 4 & Advanced Tasks)**:
+  - **Deployed Production URL**: **https://machine-learning-system-for-early.onrender.com**
+  - **Live Prediction Dashboard**: https://machine-learning-system-for-early.onrender.com/dashboard
+  - **Standalone Prediction Test Form**: https://machine-learning-system-for-early.onrender.com/predict
+  - **Equipment Registry & Management**: https://machine-learning-system-for-early.onrender.com/equipment
+  - **Advanced ML Tasks (`T38–T42`) Dashboard**: https://machine-learning-system-for-early.onrender.com/advanced
+  - **Sample Live Equipment History (`OBS-000001`)**: https://machine-learning-system-for-early.onrender.com/equipment/OBS-000001
+
+---
+
+## Advanced Tasks (`T38` – `T42`)
+
+| Task ID | Advanced Task | Expected Submission | Implementation & Generated Artifacts |
+| :---: | :--- | :--- | :--- |
+| **T38** | Predict specific failure types instead of only overall failure. | **Failure-type model** | `src/failure_type_model.py`, `models/failure_type_model.joblib`, `models/failure_type_classes.json`, `reports/t38_failure_type_model_report.csv`, `reports/t38_failure_type_confusion_matrix.png` (**97.95% Accuracy**, **98.00% Weighted F1** across 6 classes: `No Failure`, `HDF`, `OSF`, `PWF`, `TWF`, `RNF`) |
+| **T39** | Compare binary classification with multiclass classification. | **Comparison report** | `src/binary_vs_multiclass_comparison.py`, `reports/t39_binary_vs_multiclass_comparison.md`, `reports/t39_binary_vs_multiclass_metrics.csv`, `reports/t39_binary_vs_multiclass_chart.png` |
+| **T40** | Investigate anomaly detection using Isolation Forest. | **Anomaly detection notebook** | `notebooks/T40_Isolation_Forest_Anomaly_Detection.ipynb`, `src/isolation_forest_anomaly.py`, `reports/t40_isolation_forest_results.csv`, `reports/t40_isolation_forest_comparison.png` |
+| **T41** | Explain predictions using feature importance or SHAP. | **Explainability report** | `src/model_explainability.py`, `reports/t41_explainability_report.md`, `reports/t41_feature_importance.csv`, `reports/t41_feature_importance_chart.png` (Exact TreeSHAP `pred_contribs=True` + Permutation F1 Importance + Live local SHAP explanations in `/dashboard`) |
+| **T42** | Examine how prediction performance changes at different decision thresholds. | **Precision-recall comparison** | `src/threshold_precision_recall.py`, `reports/t42_precision_recall_threshold_report.md`, `reports/t42_threshold_metrics.csv`, `reports/t42_precision_recall_threshold_chart.png` (`PR-AUC = 88.24%`, threshold analysis across $t \in [0.10, 0.90]$) |
 
 ---
 

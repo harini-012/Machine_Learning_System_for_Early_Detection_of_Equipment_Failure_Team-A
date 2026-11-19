@@ -1,0 +1,9 @@
+failure_class,precision,recall,f1_score,support
+No Failure,0.9906,0.9881,0.9894,1928
+HDF (Heat Dissipation),0.9333,0.9655,0.9492,29
+OSF (Overstrain),0.8667,0.8125,0.8387,16
+PWF (Power Failure),0.7857,0.9167,0.8462,12
+TWF (Tool Wear),0.1111,0.2222,0.1481,9
+RNF (Random Failure),0.0,0.0,0.0,6
+macro avg,0.6146,0.6508,0.6286,2000
+weighted avg,0.9807,0.9795,0.98,2000

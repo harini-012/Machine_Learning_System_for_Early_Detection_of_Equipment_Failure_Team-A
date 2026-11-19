@@ -101,6 +101,16 @@
                             </span>
                         </dd>
                     </div>
+                    {% if result.specific_failure_type %}
+                        <div>
+                            <dt>Specific Failure Type (T38)</dt>
+                            <dd>
+                                <span class="badge {{ 'badge-danger' if result.specific_failure_type != 'No Failure' else 'badge-success' }}">
+                                    {{ result.specific_failure_type if failure else (result.specific_failure_type ~ ' · Top Mode: ' ~ result.top_specific_failure_mode) }}
+                                </span>
+                            </dd>
+                        </div>
+                    {% endif %}
                     <div>
                         <dt>Abnormal Sensors</dt>
                         <dd>{{ result.abnormal_sensors }}</dd>
@@ -114,6 +124,20 @@
                         <dd>{{ result.action_type }} ({{ result.estimated_downtime }})</dd>
                     </div>
                 </dl>
+
+                {% if result.shap_drivers %}
+                    <div style="margin: 12px 0; padding: 11px 14px; border-radius: 10px; background: #eef2ff; border: 1px solid #c7d2fe; font-size: 0.81rem;">
+                        <strong style="display: block; margin-bottom: 5px; color: #312e81;">Exact TreeSHAP Top Feature Drivers (T41)</strong>
+                        {% for d in result.shap_drivers %}
+                            <div style="display: flex; justify-content: space-between; padding: 2px 0; color: #1e1b4b;">
+                                <span>{{ d.feature }} ({{ d.value }})</span>
+                                <span style="font-weight: 700; color: {{ '#e11d48' if d.shap_contribution > 0 else '#059669' }};">
+                                    {{ "%+.2f"|format(d.shap_contribution) }} SHAP
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 {% if result.recommended_actions %}
                     <div style="margin: 12px 0; padding: 12px 14px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.82rem;">

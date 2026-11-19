@@ -49,6 +49,11 @@
                         {{ item.nav }}
                     </a>
                 {% endfor %}
+
+                <a href="{{ url_for('advanced_tasks') }}"
+                   {% if request.endpoint == 'advanced_tasks' %}aria-current="page"{% endif %}>
+                    Advanced ML
+                </a>
             </nav>
         </div>
     </header>

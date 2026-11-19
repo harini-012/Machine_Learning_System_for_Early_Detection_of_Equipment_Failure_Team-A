@@ -1,0 +1,4 @@
+Approach,Target Classes,Accuracy,Weighted Precision,Weighted Recall,Weighted F1,Failure/Macro Precision,Failure/Macro Recall,Failure/Macro F1,ROC-AUC,Inference Latency (ms / 2k)
+Binary Classification (Failure vs. No Failure),2,0.9905,0.9903,0.9905,0.9899,0.9623,0.75,0.843,0.9752,13.68
+Multiclass Classification (6 Specific Failure Types),6,0.9795,0.9807,0.9795,0.98,0.6146,0.6508,0.6286,0.9473,222.13
+Multiclass Collapsed to Binary (Any Failure Mode vs. Normal),2,0.9815,0.9828,0.9815,0.9821,0.7013,0.7941,0.7448,0.9596,222.13

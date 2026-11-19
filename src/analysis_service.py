@@ -173,6 +173,23 @@ def run_post_prediction_analysis(
 
     trend_info = analyse_trends(equipment_id)
 
+    # 6. Advanced Tasks T38 (Specific Failure-Type Model) & T41 (Exact TreeSHAP Explainability)
+    try:
+        from src.failure_type_model import predict_specific_failure_type
+        failure_type_info = predict_specific_failure_type(readings)
+    except Exception:
+        failure_type_info = {
+            "predicted_failure_type": maint_package["primary_issue"],
+            "top_specific_failure_mode": maint_package["primary_issue"],
+            "class_probabilities": {},
+        }
+
+    try:
+        from src.model_explainability import explain_single_prediction
+        shap_drivers = explain_single_prediction(readings, top_k=3)
+    except Exception:
+        shap_drivers = []
+
     return {
         "equipment_id": equipment_id,
         "timestamp": timestamp,
@@ -190,6 +207,10 @@ def run_post_prediction_analysis(
         "alert": alert_record,
         "overall_trend": trend_info["overall_trend"],
         "health_score_trend": trend_info["health_score_trend"],
+        "specific_failure_type": failure_type_info.get("predicted_failure_type"),
+        "top_specific_failure_mode": failure_type_info.get("top_specific_failure_mode"),
+        "failure_type_probabilities": failure_type_info.get("class_probabilities", {}),
+        "shap_drivers": shap_drivers,
         "health": {
             "health_score": health_score,
             "health_status": health_status,
