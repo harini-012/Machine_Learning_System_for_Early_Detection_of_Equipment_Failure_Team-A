@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ page.title }} | Predictive Maintenance{% endblock %}
+{% block breadcrumb %}{{ page.title }}{% endblock %}
 
 {% block content %}
 <section class="section">
@@ -8,11 +9,7 @@
             <h1>{{ page.title }}</h1>
             <p class="muted">{{ page.description }}</p>
         </div>
-        <div class="toolbar-actions">
-            <a class="button-outline" href="{{ url_for('reports.download_predicted_failures') }}">↓ Failures CSV</a>
-            <a class="button-outline" href="{{ url_for('reports.download_maintenance_activities') }}">↓ Maintenance CSV</a>
-            <a class="button-outline" href="{{ url_for('reports.download_model_performance') }}">↓ Metrics CSV</a>
-        </div>
+        <a class="button" href="{{ url_for('dashboard') }}">+ New Sensor Prediction</a>
     </header>
 
     {% for category, message in get_flashed_messages(with_categories=true) %}
@@ -36,20 +33,26 @@
     <div class="card">
         {% if rows %}
             {% if page_key == 'alerts' %}
-                {% set pills_json = '[{"label":"All Alerts","value":"ALL"},{"label":"New","value":"New"},{"label":"Acknowledged","value":"Acknowledged"},{"label":"Resolved","value":"Resolved"}]' %}
+                {% set pills = [{"label":"All Alerts","value":"ALL"},{"label":"New","value":"New"},{"label":"Acknowledged","value":"Acknowledged"},{"label":"Resolved","value":"Resolved"}] %}
             {% elif page_key == 'history' %}
-                {% set pills_json = '[{"label":"All Trends","value":"ALL"},{"label":"Deteriorating","value":"Deteriorating"},{"label":"Stable","value":"Stable"},{"label":"Improving","value":"Improving"}]' %}
+                {% set pills = [{"label":"All Trajectories","value":"ALL"},{"label":"Deteriorating","value":"Deteriorating"},{"label":"Stable","value":"Stable"},{"label":"Improving","value":"Improving"}] %}
             {% else %}
-                {% set pills_json = '[{"label":"All Records","value":"ALL"},{"label":"Critical","value":"Critical"},{"label":"Warning","value":"Warning"},{"label":"Healthy","value":"Healthy"}]' %}
+                {% set pills = [{"label":"All Units","value":"ALL"},{"label":"Critical","value":"Critical"},{"label":"Warning","value":"Warning"},{"label":"Healthy","value":"Healthy"}] %}
             {% endif %}
 
-            <!-- React Interactive Filter Pills & Search Bar -->
-            <div id="react-table-controls"
-                 data-table="monitoringTable"
-                 data-pills='{{ pills_json }}'>
-            </div>
+            <script>
+                window.__MONITORING_DATA__ = {
+                    pageKey: {{ page_key | tojson }},
+                    rows: {{ rows | tojson }},
+                    pills: {{ pills | tojson }}
+                };
+            </script>
 
-            <div class="table-wrapper">
+            <!-- React 18 Bento Telemetry Cards & Data Grid Explorer -->
+            <div id="react-monitoring-explorer"></div>
+
+            <!-- Structured Data Table View (toggled via React or used by automated tests) -->
+            <div id="ssr-table-container" class="table-wrapper" style="display: none;">
                 {% if page_key == 'risk' %}
                     <table id="monitoringTable">
                         <thead>

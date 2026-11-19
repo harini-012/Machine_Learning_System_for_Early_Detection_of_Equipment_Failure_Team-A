@@ -1,72 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Predictive Maintenance{% endblock %}</title>
+    <title>{% block title %}Predictive Maintenance OS{% endblock %}</title>
+    <script>
+        try {
+            var savedTheme = localStorage.getItem("pm_theme");
+            if (savedTheme === "light" || savedTheme === "dark") {
+                document.documentElement.setAttribute("data-theme", savedTheme);
+            }
+        } catch (e) {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='6.0') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css', v='7.0') }}">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
 <body>
-    <header class="topbar">
-        <div class="shell topbar-inner">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <a class="brand" href="{{ url_for('home') }}">
+    <div class="app-layout">
+        <!-- Left Obsidian Sidebar (Shadcn / Tremor Admin Shell) -->
+        <aside class="app-sidebar">
+            <div>
+                <a class="sidebar-brand" href="{{ url_for('home') }}">
                     <span class="brand-mark" aria-hidden="true">PM</span>
-                    Predictive Maintenance
+                    <div class="brand-text">
+                        <span class="brand-title">Telemetry OS</span>
+                        <span class="brand-sub">AI4I Predictive Suite</span>
+                    </div>
                 </a>
-                <span class="live-pill">
-                    <span class="live-dot"></span>
-                    XGBoost Active
-                </span>
+
+                <div class="sidebar-section-label">Core Workspace</div>
+                <nav class="sidebar-nav" aria-label="Primary navigation">
+                    <a class="sidebar-link" href="{{ url_for('home') }}"
+                       {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                        Overview
+                    </a>
+
+                    <a class="sidebar-link" href="{{ url_for('dashboard') }}"
+                       {% if request.endpoint in ['dashboard', 'prediction_page'] %}aria-current="page"{% endif %}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        Prediction Studio
+                    </a>
+
+                    <a class="sidebar-link" href="{{ url_for('equipment_list') }}"
+                       {% if request.endpoint in ['equipment_list', 'add_equipment', 'edit_equipment', 'equipment_detail'] %}aria-current="page"{% endif %}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="7" cy="12" r="2"/><path d="M13 10h5M13 14h5"/></svg>
+                        Equipment Fleet
+                    </a>
+                </nav>
+
+                <div class="sidebar-section-label">Telemetry &amp; Monitoring</div>
+                <nav class="sidebar-nav" aria-label="Monitoring navigation">
+                    {% for key, item in monitoring_pages.items() %}
+                        <a class="sidebar-link" href="{{ url_for('monitoring', page=key) }}"
+                           {% if page_key == key %}aria-current="page"{% endif %}>
+                            {% if key == 'risk' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            {% elif key == 'anomalies' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            {% elif key == 'alerts' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            {% elif key == 'maintenance' %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                            {% endif %}
+                            {{ item.nav }}
+                        </a>
+                    {% endfor %}
+
+                    <a class="sidebar-link" href="{{ url_for('advanced_tasks') }}"
+                       {% if request.endpoint == 'advanced_tasks' %}aria-current="page"{% endif %}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        Advanced ML (T38–T45)
+                    </a>
+                </nav>
             </div>
 
-            <nav aria-label="Main navigation">
-                <a href="{{ url_for('home') }}"
-                   {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>
-                    Overview
-                </a>
+            <div class="sidebar-footer">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span class="live-pill"><span class="live-dot"></span> Engine Online</span>
+                    <span style="color: #64748b; font-weight: 600;">v3.1</span>
+                </div>
+                <div style="color: #94a3b8; font-size: 0.72rem;">
+                    XGBoost + TreeSHAP · 99.05% Acc
+                </div>
+            </div>
+        </aside>
 
-                <a href="{{ url_for('dashboard') }}"
-                   {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>
-                    Prediction
-                </a>
+        <!-- Main Viewport -->
+        <div class="app-main-wrap">
+            <header class="command-topbar">
+                <div class="topbar-left">
+                    <span>AI4I 2020 Industrial Fleet</span>
+                    <span>/</span>
+                    <strong style="color: var(--text-primary);">{% block breadcrumb %}Telemetry Workspace{% endblock %}</strong>
+                </div>
 
-                <a href="{{ url_for('equipment_list') }}"
-                   {% if request.endpoint in ['equipment_list', 'add_equipment', 'edit_equipment', 'equipment_detail'] %}
-                       aria-current="page"
-                   {% endif %}>
-                    Equipment
-                </a>
+                <div class="topbar-right">
+                    <a class="button-outline" href="{{ url_for('reports.download_predicted_failures') }}">↓ Failures CSV</a>
+                    <a class="button-outline" href="{{ url_for('reports.download_maintenance_activities') }}">↓ Maintenance CSV</a>
+                    <a class="button-outline" href="{{ url_for('reports.download_model_performance') }}">↓ Metrics CSV</a>
+                    <div id="react-theme-toggle"></div>
+                </div>
+            </header>
 
-                {% for key, item in monitoring_pages.items() %}
-                    <a href="{{ url_for('monitoring', page=key) }}"
-                       {% if page_key == key %}aria-current="page"{% endif %}>
-                        {{ item.nav }}
-                    </a>
-                {% endfor %}
+            <main id="main" class="shell" style="flex: 1;">
+                {% block content %}{% endblock %}
+            </main>
 
-                <a href="{{ url_for('advanced_tasks') }}"
-                   {% if request.endpoint == 'advanced_tasks' %}aria-current="page"{% endif %}>
-                    Advanced ML
-                </a>
-            </nav>
+            <footer class="footer">
+                <span>Equipment Failure Prediction &amp; Health Intelligence Platform</span>
+                <span>React 18 Telemetry Shell · Dual XGBoost + TreeSHAP Engine</span>
+            </footer>
         </div>
-    </header>
+    </div>
 
-    <main id="main" class="shell">
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="shell footer">
-        <span>Equipment Failure Prediction &amp; Health Intelligence Platform</span>
-        <span>React 18 UI · XGBoost 99.05% Accuracy</span>
-    </footer>
-
-    <script src="{{ url_for('static', filename='js/react_app.js', v='6.0') }}"></script>
+    <script src="{{ url_for('static', filename='js/react_app.js', v='7.0') }}"></script>
 </body>
 </html>

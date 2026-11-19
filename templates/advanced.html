@@ -6,13 +6,16 @@
     <header class="page-heading">
         <div>
             <h1>Advanced ML Tasks (T38–T45)</h1>
-            <p class="muted">Failure-Type Model, Binary vs. Multiclass Comparison, Isolation Forest, TreeSHAP Explainability, Threshold PR Analysis, Cross-Dataset Generalization, Simulated Sensor Stream, and Multi-Channel Alert Dispatch.</p>
+            <p class="muted">Interactive React Explorer for Failure-Type Model, Binary vs. Multiclass, Isolation Forest, TreeSHAP, Threshold PR, Generalization, Stream Pipeline, and Alert Dispatch.</p>
         </div>
         <a class="button" href="{{ url_for('dashboard') }}">Test Live in Prediction Studio →</a>
     </header>
 
+    <!-- React Interactive Tab Switcher for T38–T45 -->
+    <div id="react-advanced-tabs"></div>
+
     <!-- T38: Specific Failure-Type Model -->
-    <div class="card">
+    <div class="card" data-task-section="t38">
         <h2>T38 · Specific Failure-Type Multiclass Model (`models/failure_type_model.joblib`)</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Predicts specific AI4I 2020 failure classes (`No Failure`, `HDF`, `OSF`, `PWF`, `TWF`, `RNF`) instead of only binary overall failure. Overall Multiclass Accuracy: <strong>97.95%</strong> · Weighted F1: <strong>98.00%</strong>.
@@ -44,7 +47,7 @@
     </div>
 
     <!-- T39: Binary vs Multiclass Comparison -->
-    <div class="card">
+    <div class="card" data-task-section="t39">
         <h2>T39 · Binary vs. Multiclass Classification Comparison Report</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Side-by-side comparison on the 2,000 held-out test observations comparing binary screening (`best_model.joblib`) with 6-class specific failure-type diagnosis (`failure_type_model.joblib`).
@@ -82,7 +85,7 @@
     </div>
 
     <!-- T40: Isolation Forest Anomaly Detection -->
-    <div class="card">
+    <div class="card" data-task-section="t40">
         <h2>T40 · Isolation Forest Anomaly Detection (`notebooks/T40_Isolation_Forest_Anomaly_Detection.ipynb`)</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Compares unsupervised multivariate `IsolationForest` across contamination rates against univariate IQR rule-based bounds on the 2,000 test records (`68` true failures).
@@ -118,7 +121,7 @@
     </div>
 
     <!-- T41: Feature Importance & Exact TreeSHAP -->
-    <div class="card">
+    <div class="card" data-task-section="t41">
         <h2>T41 · Explainability Report: Exact TreeSHAP &amp; Permutation Importance</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Global ranking of the 9 engineered features computed across all 2,000 held-out test records using exact TreeSHAP (`pred_contribs=True`), XGBoost Gain, and Permutation F1 Drop.
@@ -152,7 +155,7 @@
     </div>
 
     <!-- T42: Decision Threshold & Precision-Recall Comparison -->
-    <div class="card">
+    <div class="card" data-task-section="t42">
         <h2>T42 · Decision Threshold &amp; Precision-Recall Comparison (PR-AUC: 88.24%)</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Examines how Precision, Recall, F1-Score, F2-Score, False Positives, and Missed Failures change across decision thresholds $t \in [0.10, 0.90]$.
@@ -192,7 +195,7 @@
     </div>
 
     <!-- T43: Cross-Dataset Generalization Report -->
-    <div class="card">
+    <div class="card" data-task-section="t43">
         <h2>T43 · Cross-Dataset Model Generalization Report (`data/external/external_plant_telemetry.csv`)</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Evaluates the production model without retraining across three external labeled plant regimes (`1,500` samples: High-Ambient `+3.5 K` Shift, Heavy-Load Torque Shift, and Noisy Legacy IoT Sensors).
@@ -230,7 +233,7 @@
     </div>
 
     <!-- T44: Simulated Sensor-Monitoring Pipeline Prototype -->
-    <div class="card">
+    <div class="card" data-task-section="t44">
         <h2>T44 · Simulated Real-Time Sensor-Monitoring Pipeline Prototype (`SIM-CNC-01`)</h2>
         <p class="muted" style="margin-bottom: 12px;">
             20-step streaming telemetry simulation progressing from Normal Operation → Early Degradation → Critical Failure Stress → Post-Maintenance Reset.
@@ -273,7 +276,7 @@
     </div>
 
     <!-- T45: Multi-Channel Maintenance Alert Design & Demo -->
-    <div class="card">
+    <div class="card" data-task-section="t45">
         <h2>T45 · Multi-Channel Maintenance Alert Dispatch Design &amp; Demo (`src/maintenance_alert_notifier.py`)</h2>
         <p class="muted" style="margin-bottom: 12px;">
             Demonstrates severity-tiered routing (`SMTP Email Work Order`, `Slack Block-Kit Webhook`, and `PagerDuty/SMS On-Call Escalation`) with duplicate suppression and `Warning → Critical` escalation override.
