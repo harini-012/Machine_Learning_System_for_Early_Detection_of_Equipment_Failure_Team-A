@@ -7,7 +7,7 @@
     /* 1. Dark / Light Theme Toggle Component */
     function ThemeToggle() {
         const [theme, setTheme] = useState(
-            document.documentElement.getAttribute("data-theme") || "dark"
+            document.documentElement.getAttribute("data-theme") || "light"
         );
 
         function toggle() {
@@ -15,7 +15,7 @@
             setTheme(next);
             document.documentElement.setAttribute("data-theme", next);
             try {
-                localStorage.setItem("pm_theme", next);
+                localStorage.setItem("pm_theme_v8", next);
             } catch (_) {}
         }
 
@@ -25,9 +25,9 @@
                 type: "button",
                 className: "theme-toggle-btn",
                 onClick: toggle,
-                title: "Switch between Dark Telemetry Mode and Light Mode",
+                title: "Switch between Light Mode and Dark Mode",
             },
-            theme === "dark" ? "☀ Light Mode" : "☾ Dark Telemetry"
+            theme === "dark" ? "☀ Light Mode" : "☾ Dark Mode"
         );
     }
 
@@ -207,9 +207,9 @@
         );
     }
 
-    /* 4. Full React Telemetry Explorer for /monitoring/* (Bento Cards + Data Table Switcher) */
+    /* 4. Full React Telemetry Explorer for /monitoring/* (Clean Data Table default + Bento Cards Switcher) */
     function MonitoringExplorer({ pageKey, rows, pills }) {
-        const [viewMode, setViewMode] = useState("cards");
+        const [viewMode, setViewMode] = useState("table");
         const [query, setQuery] = useState("");
         const [activePill, setActivePill] = useState("ALL");
 

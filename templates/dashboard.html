@@ -30,7 +30,7 @@
                     <option value="">Choose registered equipment...</option>
                     {% for item in equipment %}
                         <option value="{{ item.equipment_id }}"
-                            {% if values.get('equipment_id') == item.equipment_id %}selected{% endif %}>
+                            {% if values.get('equipment_id') == item.equipment_id or (not values.get('equipment_id') and loop.first) %}selected{% endif %}>
                             {{ item.equipment_id }} · Type {{ item.equipment_type }}{% if item.product_id %} ({{ item.product_id }}){% endif %}
                         </option>
                     {% endfor %}
